@@ -169,7 +169,7 @@ label span{display:block;font-size:12px;font-weight:700;color:#68758b;margin-bot
 .dot{position:absolute;right:0;bottom:0;width:18px;height:18px;background:#174bd6;border-radius:8px 0 0 0;cursor:nwse-resize}
 .panel{background:#fff;border:1px solid #dde4ef;border-radius:8px;padding:14px;margin-bottom:12px}
 .panel h2{font-size:17px;margin:0 0 12px}.muted{color:#68758b;font-size:14px;line-height:1.4;margin:8px 0 0}
-canvas{width:100%;height:150px;background:#fff;border:1px dashed #aeb9ca;border-radius:6px;touch-action:none}
+canvas{width:100%;height:150px;background:transparent;border:1px dashed #aeb9ca;border-radius:6px;touch-action:none}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 #sendWhatsApp,#shareBack{background:#0d8f4f}#savePdf{background:#172033}
 .linkBox{word-break:break-all;background:#f2f5fa;border:1px solid #dde4ef;border-radius:8px;padding:10px;font-size:13px}
