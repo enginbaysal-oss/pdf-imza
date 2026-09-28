@@ -160,7 +160,7 @@ label span{display:block;font-size:12px;font-weight:700;color:#68758b;margin-bot
 .page{position:relative;width:min(100%,920px);margin:0 auto;background:#fff;box-shadow:0 12px 36px #0002;overflow:hidden;border-radius:4px;touch-action:none;user-select:none}
 .page.selecting{outline:3px solid #174bd6;cursor:crosshair}
 .page>img{display:block;width:100%;height:100%;pointer-events:none}
-.box{position:absolute;border:2px dashed #174bd6;background:#ffffffcc;color:#174bd6;border-radius:4px;min-width:44px;min-height:28px;overflow:hidden;cursor:pointer;padding:0}
+.box{position:absolute;border:2px dashed #174bd6;background:transparent;color:#174bd6;border-radius:4px;min-width:44px;min-height:28px;overflow:hidden;cursor:pointer;padding:0}
 .prepare .box{cursor:move}
 .box.sel{border-style:solid;box-shadow:0 0 0 3px #174bd633}
 .box span{position:absolute;left:4px;top:2px;right:4px;font-size:10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
