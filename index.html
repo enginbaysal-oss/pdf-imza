@@ -1,11 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/pdf-imza/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>y</title>
-    <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2303"></script>
+    <title>PDF İmza</title>
+    <script>
+      (() => {
+        const descriptor = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'lineWidth');
+        if (!descriptor || !descriptor.set || !descriptor.get) return;
+        Object.defineProperty(CanvasRenderingContext2D.prototype, 'lineWidth', {
+          get() { return descriptor.get.call(this); },
+          set(value) {
+            const nextValue = this.canvas && this.canvas.id === 'pad' && value === 3 ? 5 : value;
+            descriptor.set.call(this, nextValue);
+          }
+        });
+      })();
+    </script>
+    <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2311"></script>
   </head>
   <body>
     <div id="app"></div>
