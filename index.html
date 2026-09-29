@@ -7,6 +7,22 @@
     <title>PDF İmza</title>
     <script>
       (() => {
+        const addGetOrInsertComputed = (Ctor) => {
+          if (!Ctor || Ctor.prototype.getOrInsertComputed) return;
+          Object.defineProperty(Ctor.prototype, 'getOrInsertComputed', {
+            configurable: true,
+            writable: true,
+            value(key, callback) {
+              if (this.has(key)) return this.get(key);
+              const value = callback(key);
+              this.set(key, value);
+              return value;
+            }
+          });
+        };
+        addGetOrInsertComputed(Map);
+        addGetOrInsertComputed(WeakMap);
+
         const descriptor = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'lineWidth');
         if (descriptor && descriptor.set && descriptor.get) {
           Object.defineProperty(CanvasRenderingContext2D.prototype, 'lineWidth', {
@@ -17,16 +33,6 @@
             }
           });
         }
-
-        const fixText = (value) => String(value || '')
-          .replaceAll('Ä°', 'İ').replaceAll('Ä±', 'ı')
-          .replaceAll('Ã¼', 'ü').replaceAll('Ãœ', 'Ü')
-          .replaceAll('Ã¶', 'ö').replaceAll('Ã–', 'Ö')
-          .replaceAll('Ã§', 'ç').replaceAll('Ã‡', 'Ç')
-          .replaceAll('ÅŸ', 'ş').replaceAll('Åž', 'Ş')
-          .replaceAll('ÄŸ', 'ğ').replaceAll('Äž', 'Ğ')
-          .replaceAll('â€œ', '“').replaceAll('â€', '”')
-          .replaceAll('â€™', "'").replaceAll('â€“', '-');
 
         document.addEventListener('click', (event) => {
           const sendButton = event.target && event.target.closest && event.target.closest('#sendWhatsApp');
@@ -76,7 +82,7 @@
         };
       })();
     </script>
-    <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2312"></script>
+    <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2314"></script>
   </head>
   <body>
     <div id="app"></div>
