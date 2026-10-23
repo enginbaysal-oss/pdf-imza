@@ -82,34 +82,35 @@
         };
       })();
     </script>
-    <style>
-      .pdf-step-label::before {content:attr(data-step-no) ". ";font-weight:800}
-    </style>
+    <style>.pdf-step-number{display:inline-block;margin-right:6px;padding:2px 7px;background:#0f8191;color:#fff;border-radius:7px;font-weight:900;font-size:13px;vertical-align:middle}</style>
     <script>
-      (() => {
-        const rules = [
-          [/^(?:pdf\s*(?:dosyas[ıi]n[ıi]?)?\s*y[uü]kle|dosya\s*se[cç])/i, "1"],
-          [/^(?:[iİ]mza\s*alan[ıi]\s*se[cç]|alan\s*se[cç])/i, "2"],
-          [/^(?:link|ba[gğ]lant[ıi])\s*olu[sş]tur/i, "3"],
-          [/^(?:link|ba[gğ]lant[ıi])\s*kopyala/i, "4"],
-          [/^(?:whatsapp(?:['’]tan|\s*(?:ile|[uü]zerinden))?\s*(?:g[oö]nder|payla[sş])|whatsapp'a\s*g[oö]nder)/i, "4"]
-        ];
-        function numberExistingLabels() {
-          document.querySelectorAll('button,label,[role="button"]').forEach(el => {
-            if (el.closest('.pdf-step-label')) return;
-            const label = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ');
-            const rule = rules.find(([regex]) => regex.test(label));
-            if (rule) {
-              el.dataset.stepNo = rule[1];
-              el.classList.add('pdf-step-label');
-            }
-          });
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-          numberExistingLabels();
-          new MutationObserver(numberExistingLabels).observe(document.querySelector('#app') || document.body, {subtree:true,childList:true});
+    (() => {
+      const normalize = s => String(s||"").toLocaleLowerCase("tr-TR").replace(/\s+/g," ").trim();
+      function stepFor(el) {
+        const id=normalize(el.id),label=normalize(el.innerText||el.textContent),all=id+" "+label;
+        if(id==="sendwhatsapp"||all.includes("whatsapp"))return "4";
+        if(all.includes("kopyala")&&(all.includes("link")||all.includes("bağlantı")))return "4";
+        if(all.includes("link oluştur")||all.includes("bağlantı oluştur")||all.includes("link üret"))return "3";
+        if(all.includes("imza alan")||all.includes("alan seç"))return "2";
+        if(all.includes("pdf yükle")||all.includes("pdf dosyası")||all.includes("dosya yükle")||all.includes("dosya seç"))return "1";
+        return null;
+      }
+      function applyNumbers(){
+        document.querySelectorAll('#app button,#app label,#app [role="button"]').forEach(el=>{
+          if(el.dataset.pdfStepDone)return;
+          const n=stepFor(el);
+          if(!n)return;
+          el.dataset.pdfStepDone="1";
+          const badge=document.createElement("span");
+          badge.className="pdf-step-number";badge.textContent=n+".";
+          el.insertBefore(badge,el.firstChild);
         });
-      })();
+      }
+      document.addEventListener("DOMContentLoaded",()=>{
+        applyNumbers();
+        new MutationObserver(applyNumbers).observe(document.getElementById("app"),{childList:true,subtree:true});
+      });
+    })();
     </script>
     <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2314"></script>
   </head>
