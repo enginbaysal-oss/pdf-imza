@@ -82,6 +82,35 @@
         };
       })();
     </script>
+    <style>
+      .pdf-step-label::before {content:attr(data-step-no) ". ";font-weight:800}
+    </style>
+    <script>
+      (() => {
+        const rules = [
+          [/^(?:pdf\s*(?:dosyas[ıi]n[ıi]?)?\s*y[uü]kle|dosya\s*se[cç])/i, "1"],
+          [/^(?:[iİ]mza\s*alan[ıi]\s*se[cç]|alan\s*se[cç])/i, "2"],
+          [/^(?:link|ba[gğ]lant[ıi])\s*olu[sş]tur/i, "3"],
+          [/^(?:link|ba[gğ]lant[ıi])\s*kopyala/i, "4"],
+          [/^(?:whatsapp(?:['’]tan|\s*(?:ile|[uü]zerinden))?\s*(?:g[oö]nder|payla[sş])|whatsapp'a\s*g[oö]nder)/i, "4"]
+        ];
+        function numberExistingLabels() {
+          document.querySelectorAll('button,label,[role="button"]').forEach(el => {
+            if (el.closest('.pdf-step-label')) return;
+            const label = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ');
+            const rule = rules.find(([regex]) => regex.test(label));
+            if (rule) {
+              el.dataset.stepNo = rule[1];
+              el.classList.add('pdf-step-label');
+            }
+          });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          numberExistingLabels();
+          new MutationObserver(numberExistingLabels).observe(document.querySelector('#app') || document.body, {subtree:true,childList:true});
+        });
+      })();
+    </script>
     <script type="module" crossorigin src="/pdf-imza/assets/index-W37B-N9h.js?v=2314"></script>
   </head>
   <body>
