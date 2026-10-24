@@ -53,6 +53,7 @@
 <div id="signForm" hidden>
 <h3>İmzalaman gereken PDF</h3>
 <p class="muted">Lütfen belgeyi oku. İmzan, belge sahibinin belirlediği alana yerleştirilecektir.</p>
+<div id="signPdfCanvasBox" hidden style="margin:10px auto;max-width:760px;background:#eaf0f4;border-radius:12px;padding:10px"><canvas id="signPageCanvas" style="display:block;max-width:100%;height:auto;margin:auto;background:white"></canvas></div>
 <iframe id="signPdf" class="pdfView" title="İmzalanacak PDF"></iframe>
 <p><a id="originalPdfLink" target="_blank" rel="noopener noreferrer">PDF telefonunda açılmıyorsa buraya dokun ↗</a></p>
 <h3 id="signStepTitle">Bu sayfa için imzanı çiz</h3>
@@ -73,7 +74,7 @@
 <script type="module">
 const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[];const pageViews=new Map();
+let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
 function initialLocations(){
  const pages=pageCount<=30?Array.from({length:pageCount},(_,n)=>n+1):[pageCount];
@@ -338,13 +339,46 @@ async function signerView(token){
   $("signForm").hidden=false;
   showSignaturePage();
   tell("signStatus","");
+  void prepareSignerDocument(data.originalUrl);
  }catch(e){$("signForm").hidden=true;tell("signStatus",e.message,true)}
+}
+async function prepareSignerDocument(url){
+ try{
+  const response=await fetch(url);
+  if(!response.ok)throw Error("PDF indirilemedi");
+  const bytes=await response.arrayBuffer();
+  signPdfDocument=await readerPdf(new Blob([bytes],{type:"application/pdf"}));
+  $("signPdf").hidden=true;
+  $("signPdfCanvasBox").hidden=false;
+  await renderSignerPdfPage();
+ }catch(e){
+  signPdfDocument=null;
+  $("signPdfCanvasBox").hidden=true;
+  $("signPdf").hidden=false;
+  // Tarayıcıda PDF önizlemesi engellenirse standart görüntüleyiciyi kullan.
+ }
+}
+async function renderSignerPdfPage(){
+ if(!signPdfDocument)return;
+ if(signPdfRenderTask){try{signPdfRenderTask.cancel()}catch{};try{await signPdfRenderTask.promise}catch{}}
+ const page=await signPdfDocument.getPage(signPages[signIndex]);
+ const original=page.getViewport({scale:1});
+ const width=Math.max(200,Math.min(730,$("signPdfCanvasBox").clientWidth-20));
+ const dpr=Math.min(window.devicePixelRatio||1,2);
+ const viewport=page.getViewport({scale:width/original.width*dpr});
+ const canvas=$("signPageCanvas");canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+ canvas.style.width=width+"px";
+ const task=page.render({canvasContext:canvas.getContext("2d"),viewport});
+ signPdfRenderTask=task;
+ try{await task.promise}catch(err){if(err?.name!=="RenderingCancelledException")throw err}
+ finally{if(signPdfRenderTask===task)signPdfRenderTask=null}
 }
 function showSignaturePage(){
  const page=signPages[signIndex];if(!page)return;
  $("signStepTitle").textContent="İmza "+(signIndex+1)+" / "+signPages.length+" · "+page+". sayfa";
  $("signStepHelp").textContent=page+". sayfayı oku, ardından aşağıdaki alana bu sayfa için yeni imzanı çiz.";
  $("signPdf").src=$("originalPdfLink").href+"#page="+page+"&view=FitH";
+ if(signPdfDocument)void renderSignerPdfPage().catch(()=>{$("signPdfCanvasBox").hidden=true;$("signPdf").hidden=false;});
  $("prevSignature").hidden=signIndex===0;
  $("nextSignature").hidden=signIndex===signPages.length-1;
  $("submitSignature").hidden=signIndex!==signPages.length-1;
