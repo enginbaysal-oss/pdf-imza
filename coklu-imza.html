@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Çoklu İmza Topla | PDF İmzala</title>
+<style>
+:root{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#17344a;background:#f0f5f8}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(112deg,#16456e,#0d8990);color:#fff;padding:17px 20px}header nav{display:flex;align-items:center;justify-content:space-between;max-width:1050px;margin:auto;gap:12px}header h1{font-size:23px;margin:0;font-weight:850}header a{color:white;text-decoration:none;font-size:13px;font-weight:650}main{max-width:1050px;margin:16px auto;padding:0 14px 60px}.panel{background:white;padding:19px;border-radius:16px;margin:14px 0;box-shadow:0 3px 18px #23415714}h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px}p{margin:6px 0 12px}label{display:block;margin-top:10px;margin-bottom:5px;font-weight:700;font-size:13px}input,select{width:100%;background:#fff;color:#172f44;border:1px solid #bdd2df;border-radius:10px;padding:12px;font:inherit}input[type=file]{padding:9px}button,.btn{background:#158f72;color:white;border:0;padding:11px 16px;border-radius:10px;font:inherit;font-weight:760;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;gap:5px}button.secondary,.btn.secondary{background:#e4eef3;color:#18516b}button.danger{background:#f2e4e2;color:#903b3b}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:0 0 auto}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.muted{font-size:13px;color:#5e7180}.notice{padding:12px;background:#edf8f3;border:1px solid #cbe8da;border-radius:10px;font-size:13px}.warn{background:#fff5e8;border-color:#f4d2ac}.status{min-height:18px;color:#176e57;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#b43f37!important}.card{border:1px solid #dce9ee;border-radius:12px;padding:12px;margin:10px 0;background:#fafcfe}.card strong{display:block}.chip{display:inline-block;padding:4px 8px;background:#e1f2e9;color:#26794b;border-radius:12px;font-size:12px;font-weight:750}.chip.wait{background:#fff2dd;color:#905b1e}#pdfStage{position:relative;max-width:730px;margin:12px auto;background:#eceff2;line-height:0;border:1px solid #cedbe4}#pageCanvas{display:block;width:100%;height:auto}#markers{position:absolute;inset:0;pointer-events:none}.marker{position:absolute;border:2px dashed #1f90c4;background:#b8e3ee77;border-radius:4px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;line-height:1.2;color:#124963;overflow:hidden}.marker.active{border:3px solid #fa9119;background:#ffe5ab88;color:#683507}#pdfStage.pick{cursor:crosshair}.signArea{border:2px dashed #a4bfcc;border-radius:13px;background:#fff;max-width:800px;overflow:hidden}#signatureCanvas{width:100%;height:auto;touch-action:none;display:block;background:#fff;cursor:crosshair;aspect-ratio:3.33}iframe.pdfView{width:100%;height:440px;border:1px solid #d8e0e6;border-radius:12px;background:#eee}.personLine{border-top:1px solid #e5edf1;padding:8px 0}.personLine:first-child{border:0}.break{overflow-wrap:anywhere;word-break:break-word}a{color:#14689a}.miniNote{font-size:12px;color:#687986}section[hidden],div[hidden]{display:none!important}@media(max-width:650px){.grid,.grid.two{grid-template-columns:1fr}.panel{padding:13px}header h1{font-size:19px}iframe.pdfView{height:380px}button{padding:11px}.row>*{max-width:100%}}
+</style>
+</head>
+<body>
+<header><nav><h1>✍️ PDF İmzala · Çoklu İmza</h1><a href="/pdf-imza/">← Ana uygulamaya dön</a></nav></header>
+<main>
+<section class="panel" id="adminLogin">
+<h2>Yönetici Girişi</h2>
+<p class="muted">EmlakCRM'de kullandığın Supabase hesabının e-posta ve şifresiyle giriş yap. Yeni kayıt açman gerekmiyor.</p>
+<div class="grid two"><div><label for="loginEmail">E-posta</label><input id="loginEmail" type="email" autocomplete="username" placeholder="E-posta adresin"></div><div><label for="loginPassword">Şifre</label><input id="loginPassword" type="password" autocomplete="current-password"></div></div>
+<div class="row" style="margin-top:13px"><button id="loginBtn">Giriş Yap</button></div><p id="loginStatus" class="status" role="status"></p>
+</section>
+
+<div id="adminApp" hidden>
+<section class="panel">
+<div class="row" style="justify-content:space-between"><h2>Yeni 3 Kişilik İmza Toplama</h2><button id="logoutBtn" class="secondary">Çıkış Yap</button></div>
+<p class="notice warn">Deneme sürümü: İmzalar elle çizilerek PDF'ye işlenir. Nitelikli elektronik imza yerine geçmez. Kimlik doğrulaması bağlantıya erişimle sınırlıdır; hassas veya gerçek sözleşmelerle test etmeyin.</p>
+<label for="docTitle">Belge adı</label><input id="docTitle" maxlength="180" placeholder="Örnek: Deneme kira sözleşmesi">
+<label for="pdfFile">PDF dosyası (en fazla 6 MB, 100 sayfa)</label><input id="pdfFile" type="file" accept="application/pdf,.pdf">
+<div class="grid" id="nameGrid">
+<div><label for="name1">1. imzacı</label><input id="name1" maxlength="100" value="Mal sahibi"></div>
+<div><label for="name2">2. imzacı</label><input id="name2" maxlength="100" value="Kiracı"></div>
+<div><label for="name3">3. imzacı</label><input id="name3" maxlength="100" value="Kefil"></div>
+</div>
+<div id="positionPanel" hidden>
+<h3 style="margin-top:17px">İmza yerlerini belirle</h3>
+<p class="muted">İmzacı seç ve PDF üzerinde imzanın geleceği alanın <b>sol üstüne dokun</b>. Üç imza için de istediğin sayfayı seçebilirsin. Alanları boş bölgelere yerleştir.</p>
+<div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:220px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="prevPage" class="secondary">‹ Önceki sayfa</button><span id="pageLabel"></span><button id="nextPage" class="secondary">Sonraki sayfa ›</button></div>
+<div id="pdfStage" class="pick"><canvas id="pageCanvas"></canvas><div id="markers"></div></div>
+</div>
+<div class="row" style="margin-top:15px"><button id="createBtn" disabled>3 İmza Bağlantısı Oluştur</button></div>
+<p id="createStatus" class="status" role="status"></p>
+</section>
+<section class="panel" id="invitesBox" hidden><h2>🔗 İmzacı Bağlantıları</h2><p class="notice warn">Bu üç özel bağlantıyı şimdi kopyala veya WhatsApp ile gönder. Güvenlik için bağlantıların tamamı daha sonra tekrar gösterilmez.</p><div id="invites"></div></section>
+<section class="panel">
+<div class="row" style="justify-content:space-between"><h2>📋 İmza Takibi · Belgelerim</h2><button class="secondary" id="refreshBtn">Yenile ↻</button></div>
+<p class="muted">Belgeleri yalnızca yükleyen yönetici görebilir. 3 imza tamamlanınca son PDF burada açılır.</p>
+<div id="documentsList"></div><p id="listStatus" class="status"></p>
+</section>
+</div>
+
+<div id="signerApp" hidden>
+<section class="panel">
+<h2>✍️ Belgeyi İmzala</h2><p id="signSummary" class="muted">Belge yükleniyor...</p>
+<p id="signProgress" class="notice"></p>
+<div id="signForm" hidden>
+<h3>İmzalaman gereken PDF</h3>
+<p class="muted">Lütfen belgeyi oku. İmzan, belge sahibinin belirlediği alana yerleştirilecektir.</p>
+<iframe id="signPdf" class="pdfView" title="İmzalanacak PDF"></iframe>
+<p><a id="originalPdfLink" target="_blank" rel="noopener noreferrer">PDF telefonunda açılmıyorsa buraya dokun ↗</a></p>
+<h3>İmzanı aşağıya çiz</h3>
+<div class="signArea"><canvas id="signatureCanvas" width="900" height="270"></canvas></div>
+<div class="row" style="margin-top:12px"><button class="secondary" id="clearSignature">İmzayı Temizle</button><button id="submitSignature">İmzayı Gönder</button></div>
+<p class="muted">İmzanı gönderdiğinde işlemin tamamlanır. İmzaların birleştiği son PDF yalnızca belge yöneticisine açılır.</p>
+</div>
+<p id="signStatus" class="status" role="status"></p>
+</section>
+</div>
+</main>
+<script type="module">
+const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
+const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let session=null,selectedFile=null,pdfDoc=null,pageNumber=1,pageCount=0,locations=[],signToken=null,ink=false;
+function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
+function initialLocations(){return [0,1,2].map((i)=>({page:pageCount,x:[.04,.365,.69][i],y:.86}))}
+function safeLink(s){return String(s||"").startsWith("https://")?s:""}
+async function call(action,payload={},authorized=false){
+ const headers={"Content-Type":"application/json",apikey:KEY};
+ if(authorized){await refreshSession();headers.Authorization="Bearer "+session.access_token}
+ const res=await fetch(F,{method:"POST",headers,body:JSON.stringify({action,...payload})});
+ const j=await res.json().catch(()=>({}));
+ if(!res.ok||j.error)throw Error(j.error||"Sunucu hatası ("+res.status+")");
+ return j;
+}
+async function refreshSession(){
+ if(!session){try{session=JSON.parse(sessionStorage.getItem(STORE)||"null")}catch{}}
+ if(!session?.access_token)throw Error("Önce giriş yap.");
+ if(Date.now()<(session.expires_at||0)-45000)return;
+ if(!session.refresh_token)throw Error("Tekrar giriş yap.");
+ const res=await fetch(API+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:session.refresh_token})});
+ const j=await res.json().catch(()=>({}));
+ if(!res.ok||!j.access_token)throw Error("Oturum sona erdi. Tekrar giriş yap.");
+ session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000};
+ sessionStorage.setItem(STORE,JSON.stringify(session));
+}
+async function login(email,password){
+ const res=await fetch(API+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+ const j=await res.json().catch(()=>({}));
+ if(!res.ok||!j.access_token)throw Error(j.error_description||j.msg||j.error||"Giriş başarısız.");
+ session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000};
+ sessionStorage.setItem(STORE,JSON.stringify(session));
+}
+function adminView(){ $("adminLogin").hidden=true;$("adminApp").hidden=false;$("signerApp").hidden=true;void listDocs() }
+function logout(){session=null;sessionStorage.removeItem(STORE);$("adminLogin").hidden=false;$("adminApp").hidden=true;tell("loginStatus","Oturum kapatıldı.")}
+$("loginBtn").onclick=async()=>{
+ const btn=$("loginBtn");btn.disabled=true;tell("loginStatus","Giriş yapılıyor...");
+ try{await login($("loginEmail").value.trim(),$("loginPassword").value);$("loginPassword").value="";adminView()}
+ catch(e){tell("loginStatus",e.message,true)}finally{btn.disabled=false}
+};
+$("logoutBtn").onclick=logout;
+async function fileBytes(file){
+ return new Uint8Array(await file.arrayBuffer());
+}
+async function readerPdf(file){
+ const pdfjs=await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
+ pdfjs.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+ return pdfjs.getDocument({data:await fileBytes(file)}).promise;
+}
+$("pdfFile").onchange=async()=>{
+ const file=$("pdfFile").files[0];selectedFile=null;pdfDoc=null;$("positionPanel").hidden=true;$("createBtn").disabled=true;
+ if(!file)return;
+ if(file.size>6*1024*1024){tell("createStatus","PDF 6 MB sınırını aşamaz.",true);return}
+ tell("createStatus","PDF hazırlanıyor...");
+ try{
+  pdfDoc=await readerPdf(file);pageCount=pdfDoc.numPages;if(pageCount>100)throw Error("En fazla 100 sayfa.");
+  selectedFile=file;pageNumber=pageCount;locations=initialLocations();$("positionPanel").hidden=false;$("createBtn").disabled=false;
+  if(!$("docTitle").value.trim())$("docTitle").value=file.name.replace(/\.pdf$/i,"");
+  await renderPage();tell("createStatus","İmza alanlarını ayarla, ardından bağlantıları oluştur.");
+ }catch(e){tell("createStatus","PDF görüntülenemedi: "+e.message,true)}
+};
+async function renderPage(){
+ if(!pdfDoc)return;
+ $("pageLabel").textContent="Sayfa "+pageNumber+" / "+pageCount;
+ const page=await pdfDoc.getPage(pageNumber),viewport=page.getViewport({scale:1});
+ const maxWidth=Math.max(280,Math.min(680,$("pdfStage").parentElement.clientWidth-12));
+ const displayScale=maxWidth/viewport.width,view=page.getViewport({scale:displayScale*(window.devicePixelRatio||1)});
+ const can=$("pageCanvas");can.width=Math.round(view.width);can.height=Math.round(view.height);
+ await page.render({canvasContext:can.getContext("2d"),viewport:view}).promise;
+ renderMarkers();
+}
+function renderMarkers(){
+ $("markers").innerHTML=locations.map((loc,i)=>loc.page!==pageNumber?"":'<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>').join("");
+}
+$("whoPlace").onchange=()=>{const where=locations[Number($("whoPlace").value)];pageNumber=where.page;void renderPage()};
+$("prevPage").onclick=()=>{if(pageNumber>1){pageNumber--;void renderPage()}};
+$("nextPage").onclick=()=>{if(pageNumber<pageCount){pageNumber++;void renderPage()}};
+$("pageCanvas").onclick=event=>{
+ if(!pdfDoc)return;
+ const box=$("pageCanvas").getBoundingClientRect();
+ const x=Math.max(0,Math.min(.73,(event.clientX-box.left)/box.width));
+ const y=Math.max(0,Math.min(.91,(event.clientY-box.top)/box.height));
+ locations[Number($("whoPlace").value)]={page:pageNumber,x,y};renderMarkers();
+};
+for(let i=1;i<=3;i++)$("name"+i).addEventListener("input",renderMarkers);
+async function b64(file){
+ const bytes=await fileBytes(file);let result="";
+ for(let i=0;i<bytes.length;i+=0x8000)result+=String.fromCharCode(...bytes.slice(i,i+0x8000));
+ return btoa(result);
+}
+$("createBtn").onclick=async()=>{
+ if(!selectedFile||!pdfDoc){tell("createStatus","Önce PDF seç.",true);return}
+ const signers=locations.map((loc,i)=>({name:$("name"+(i+1)).value.trim(),page:loc.page,x:loc.x,y:loc.y}));
+ if(signers.some(s=>!s.name)){tell("createStatus","Üç kişinin adını da yaz.",true);return}
+ const title=$("docTitle").value.trim();
+ if(!title){tell("createStatus","Belge adını yaz.",true);return}
+ const btn=$("createBtn");btn.disabled=true;tell("createStatus","PDF yükleniyor ve özel imza bağlantıları hazırlanıyor...");
+ try{
+  const data=await call("create",{title,pdf:await b64(selectedFile),signers},true);
+  const base=location.href.split("#")[0];
+  $("invites").innerHTML=data.links.map(item=>{
+   const link=base+"#sign="+encodeURIComponent(item.token);
+   const wa="https://wa.me/?text="+encodeURIComponent("Merhaba "+item.name+", imzalamanız gereken PDF belgesi için özel bağlantınız:\n"+link);
+   return '<div class="card"><strong>'+xss(item.slot)+". imzacı: "+xss(item.name)+'</strong><p class="break miniNote">'+xss(link)+'</p><div class="row"><button class="secondary" type="button" data-copy-link="'+xss(link)+'">Bağlantıyı Kopyala</button><a class="btn" target="_blank" rel="noopener noreferrer" href="'+xss(wa)+'">WhatsApp ile Gönder ↗</a></div></div>';
+  }).join("");
+  $("invitesBox").hidden=false;
+  $("invitesBox").scrollIntoView({behavior:"smooth"});
+  tell("createStatus","Üç özel bağlantı hazır. Linkleri kişilere gönder. Tüm imzalar tamamlandığında son PDF yalnızca yönetici ekranında görünecek.");
+  await listDocs();
+ }catch(e){tell("createStatus","Belge oluşturulamadı: "+e.message,true)}
+ finally{btn.disabled=false}
+};
+$("invites").onclick=async e=>{
+ const btn=e.target.closest("[data-copy-link]");if(!btn)return;
+ try{await navigator.clipboard.writeText(btn.dataset.copyLink);btn.textContent="✓ Kopyalandı"}
+ catch{window.prompt("Bağlantıyı kopyala:",btn.dataset.copyLink)}
+};
+async function listDocs(){
+ tell("listStatus","Liste yenileniyor...");
+ try{
+  const data=await call("list",{},true);
+  $("documentsList").innerHTML=data.documents.length?data.documents.map(d=>{
+   const signed=(d.signers||[]).filter(s=>s.status==="signed").length;
+   return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<3?"wait":"")+'">'+signed+'/3 imza · '+(d.status==="complete"?"Tamamlandı":signed===3?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
+    (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b></div>').join("")+
+    '<div class="row" style="margin-top:12px"><button class="secondary" data-admin-open="'+xss(d.id)+'" data-kind="original">Orijinal PDF</button>'+
+    (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===3?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
+    '</div></div>';
+  }).join(""):'<p class="muted">Henüz oluşturulmuş belge yok.</p>';
+  tell("listStatus","");
+ }catch(e){tell("listStatus",e.message,true)}
+}
+$("refreshBtn").onclick=()=>void listDocs();
+$("documentsList").onclick=async e=>{
+ const btn=e.target.closest("[data-admin-open],[data-finalize]");if(!btn)return;
+ btn.disabled=true;
+ try{
+  if(btn.dataset.finalize){await call("finalize",{id:btn.dataset.finalize},true);await listDocs()}
+  else {
+   const r=await call("adminPdf",{id:btn.dataset.adminOpen,type:btn.dataset.kind},true);
+   const a=document.createElement("a");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";document.body.appendChild(a);a.click();a.remove();
+  }
+ }catch(err){tell("listStatus",err.message,true)}
+ finally{btn.disabled=false}
+};
+async function signerView(token){
+ signToken=token;$("signerApp").hidden=false;$("adminLogin").hidden=true;$("adminApp").hidden=true;
+ try{
+  const data=await call("open",{token});
+  $("signSummary").textContent="Belge: "+data.document+" · İmzacı: "+data.name;
+  $("signProgress").textContent="Toplanan imzalar: "+data.signedCount+" / 3";
+  if(data.alreadySigned){
+   $("signForm").hidden=true;tell("signStatus","✓ İmzan kaydedildi. Son belge yalnızca yöneticiye sunulacak.");return;
+  }
+  $("signPdf").src=data.originalUrl;$("originalPdfLink").href=data.originalUrl;
+  $("signForm").hidden=false;tell("signStatus","");
+ }catch(e){$("signForm").hidden=true;tell("signStatus",e.message,true)}
+}
+const pad=$("signatureCanvas"),ctx=pad.getContext("2d");
+ctx.strokeStyle="#142a43";ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";
+let drawing=false;
+function coords(e){const r=pad.getBoundingClientRect();return {x:(e.clientX-r.left)*pad.width/r.width,y:(e.clientY-r.top)*pad.height/r.height}}
+pad.addEventListener("pointerdown",e=>{e.preventDefault();pad.setPointerCapture(e.pointerId);drawing=true;ink=true;const p=coords(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.05,p.y+.05);ctx.stroke()});
+pad.addEventListener("pointermove",e=>{if(!drawing)return;e.preventDefault();const p=coords(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+for(const name of ["pointerup","pointercancel","lostpointercapture"])pad.addEventListener(name,()=>{drawing=false});
+$("clearSignature").onclick=()=>{ctx.clearRect(0,0,pad.width,pad.height);ink=false;tell("signStatus","İmza temizlendi.")};
+$("submitSignature").onclick=async()=>{
+ if(!ink){tell("signStatus","Önce imzanı çiz.",true);return}
+ if(!confirm("Bu belgeyi imzalayıp göndermeyi onaylıyor musun?"))return;
+ const btn=$("submitSignature");btn.disabled=true;tell("signStatus","İmzan kaydediliyor...");
+ try{
+  const png=pad.toDataURL("image/png").split(",")[1];
+  const r=await call("sign",{token:signToken,png});
+  $("signForm").hidden=true;$("signProgress").textContent="İşlemin tamamlandı.";
+  tell("signStatus",r.finalError?"✓ İmzan alındı. Son PDF hazırlanırken sorun oluştu; belge yöneticisi yeniden oluşturabilir.":"✓ İmzan başarıyla alındı. Teşekkürler.");
+ }catch(e){tell("signStatus",e.message,true)}finally{btn.disabled=false}
+};
+const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
+if(sign)void signerView(sign);
+else{
+ try{session=JSON.parse(sessionStorage.getItem(STORE)||"null")}catch{}
+ if(session?.access_token)adminView();
+}
+</script>
+</body>
+</html>
