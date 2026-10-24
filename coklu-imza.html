@@ -30,9 +30,9 @@
 </div>
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
-<p class="muted">İmzacı seç ve PDF üzerinde imzanın geleceği alanın <b>sol üstüne dokun</b>. Üç imza için de istediğin sayfayı seçebilirsin. Alanları boş bölgelere yerleştir.</p>
+<p class="muted">Her imzacı için <b>her sayfaya ayrı imza alanı</b> yerleştiriyoruz. Başlangıçta üç kişinin tüm sayfalarda ayrı alanı hazırlanır. İmzacı seçip sayfa üzerinde dokunarak o sayfadaki konumunu değiştirebilirsin.</p>
 <div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
-<p class="muted">Bütün sayfalar aşağıda sıralı ve ekran genişliğine sığdırılmıştır. Sayfa ters görünüyorsa yanındaki <b>90° Döndür</b> düğmesini kullan. İmza yeri için istediğin sayfanın üzerine dokun. Başlangıçta üç imza son sayfadadır.</p>
+<p class="muted">Tüm sayfalar alt alta görünür. Her sayfadaki üç imza kutusunun yerini kontrol et. Her imzacı bağlantısından sayfaları sırayla ayrı ayrı imzalayacak. Sayfa ters görünüyorsa <b>90° Döndür</b> kullan.</p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
 </div>
 <div class="row" style="margin-top:15px"><button id="createBtn" disabled>3 İmza Bağlantısı Oluştur</button></div>
@@ -55,10 +55,16 @@
 <p class="muted">Lütfen belgeyi oku. İmzan, belge sahibinin belirlediği alana yerleştirilecektir.</p>
 <iframe id="signPdf" class="pdfView" title="İmzalanacak PDF"></iframe>
 <p><a id="originalPdfLink" target="_blank" rel="noopener noreferrer">PDF telefonunda açılmıyorsa buraya dokun ↗</a></p>
-<h3>İmzanı aşağıya çiz</h3>
+<h3 id="signStepTitle">Bu sayfa için imzanı çiz</h3>
+<p id="signStepHelp" class="notice">Her sayfa ayrı imzalanır.</p>
 <div class="signArea"><canvas id="signatureCanvas" width="900" height="270"></canvas></div>
-<div class="row" style="margin-top:12px"><button class="secondary" id="clearSignature">İmzayı Temizle</button><button id="submitSignature">İmzayı Gönder</button></div>
-<p class="muted">İmzanı gönderdiğinde işlemin tamamlanır. İmzaların birleştiği son PDF yalnızca belge yöneticisine açılır.</p>
+<div class="row" style="margin-top:12px">
+<button class="secondary" id="clearSignature">İmzayı Temizle</button>
+<button class="secondary" id="prevSignature" hidden>‹ Önceki İmza</button>
+<button id="nextSignature" hidden>Bu Sayfayı Kaydet ve Sonraki Sayfa ›</button>
+<button id="submitSignature">Tüm İmzaları Gönder</button>
+</div>
+<p class="muted">Her sayfanın imzasını ayrı ayrı çiz. Son sayfadan sonra hepsini birlikte gönder.</p>
 </div>
 <p id="signStatus" class="status" role="status"></p>
 </section>
@@ -67,9 +73,12 @@
 <script type="module">
 const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null;const pageViews=new Map();
+let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[];const pageViews=new Map();
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
-function initialLocations(){return [0,1,2].map((i)=>({page:pageCount,x:[.04,.365,.69][i],y:.86}))}
+function initialLocations(){
+ const pages=pageCount<=30?Array.from({length:pageCount},(_,n)=>n+1):[pageCount];
+ return [0,1,2].map(i=>pages.map(page=>({page,x:[.04,.365,.69][i],y:.86})));
+}
 function safeLink(s){return String(s||"").startsWith("https://")?s:""}
 async function call(action,payload={},authorized=false){
  const headers={"Content-Type":"application/json",apikey:KEY};
@@ -174,7 +183,8 @@ async function renderSheet(n){
 }
 function renderMarkers(){
  for(const [n,item] of pageViews){
-  item.markers.innerHTML=locations.map((loc,i)=>loc.page!==n?"":'<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>').join("");
+  item.markers.innerHTML=locations.flatMap((positions,i)=>positions.filter(loc=>loc.page===n).map(loc=>
+   '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
   const label=item.sheet.querySelector("[data-rotation-label]");
   label.textContent=" · "+item.rotation+"°";
  }
@@ -186,7 +196,7 @@ async function rotateSheet(n,delta){
  const size=item.page.getViewport({scale:1,rotation:item.rotation});
  item.paper.style.aspectRatio=size.width+"/"+size.height;
  item.paper.querySelector(".pdfLoading").hidden=false;
- const affected=locations.filter(l=>l.page===n);
+ const affected=locations.some(positions=>positions.some(l=>l.page===n));
  if(affected.length)tell("createStatus","Sayfa "+n+" döndürüldü. Bu sayfadaki imza kutularının yerini kontrol edip gerekirse yeniden seç.");
  await renderSheet(n);
 }
@@ -220,13 +230,17 @@ $("pdfPages").onclick=event=>{
  const x=Math.max(0,Math.min(.73,(event.clientX-rect.left)/rect.width));
  const y=Math.max(0,Math.min(.91,(event.clientY-rect.top)/rect.height));
  const page=Number(paper.dataset.paperPage);
- locations[Number($("whoPlace").value)]={page,x,y};
+ const positions=locations[Number($("whoPlace").value)];
+ const existing=positions.find(p=>p.page===page);
+ if(existing){existing.x=x;existing.y=y}
+ else if(positions.length<30){positions.push({page,x,y});positions.sort((a,b)=>a.page-b.page)}
+ else {tell("createStatus","Bir imzacının en fazla 30 sayfalık imzası olabilir.",true);return}
  renderMarkers();
- tell("createStatus",($("whoPlace").selectedOptions[0]?.textContent||"İmzacı")+" için imza yeri: "+page+". sayfa. Diğer kişiyi seçerek devam et.");
+ tell("createStatus",($("whoPlace").selectedOptions[0]?.textContent||"İmzacı")+" için "+page+". sayfadaki imza yeri güncellendi. Her sayfa için farklı bir imza alınacak.");
 };
 $("whoPlace").onchange=()=>renderMarkers();
 $("jumpPlace").onclick=()=>{
- const loc=locations[Number($("whoPlace").value)];
+ const loc=locations[Number($("whoPlace").value)]?.[0];
  pageViews.get(loc?.page)?.sheet.scrollIntoView({behavior:"smooth",block:"center"});
 };
 $("rotateAll180").onclick=async()=>{
@@ -254,8 +268,8 @@ async function b64(file){
 }
 $("createBtn").onclick=async()=>{
  if(!selectedFile||!pdfDoc){tell("createStatus","Önce PDF seç.",true);return}
- const signers=locations.map((loc,i)=>({name:$("name"+(i+1)).value.trim(),page:loc.page,x:loc.x,y:loc.y}));
- if(signers.some(s=>!s.name)){tell("createStatus","Üç kişinin adını da yaz.",true);return}
+ const signers=locations.map((points,i)=>({name:$("name"+(i+1)).value.trim(),placements:points.map(p=>({...p}))}));
+ if(signers.some(s=>!s.name||!s.placements.length)){tell("createStatus","Üç kişinin adını ve imza sayfalarını kontrol et.",true);return}
  const title=$("docTitle").value.trim();
  if(!title){tell("createStatus","Belge adını yaz.",true);return}
  const btn=$("createBtn");btn.disabled=true;tell("createStatus","PDF yükleniyor ve özel imza bağlantıları hazırlanıyor...");
@@ -313,14 +327,49 @@ async function signerView(token){
  try{
   const data=await call("open",{token});
   $("signSummary").textContent="Belge: "+data.document+" · İmzacı: "+data.name;
-  $("signProgress").textContent="Toplanan imzalar: "+data.signedCount+" / 3";
+  $("signProgress").textContent="Toplanan kişiler: "+data.signedCount+" / 3";
   if(data.alreadySigned){
-   $("signForm").hidden=true;tell("signStatus","✓ İmzan kaydedildi. Son belge yalnızca yöneticiye sunulacak.");return;
+   $("signForm").hidden=true;tell("signStatus","✓ İmzaların kaydedildi. Son belge yalnızca yönetici ekranında olacak.");return;
   }
-  $("signPdf").src=data.originalUrl;$("originalPdfLink").href=data.originalUrl;
-  $("signForm").hidden=false;tell("signStatus","");
+  signPages=Array.isArray(data.pages)&&data.pages.length?data.pages.map(Number).sort((a,b)=>a-b):[Number(data.page||1)];
+  signedPagePng=new Array(signPages.length).fill(null);
+  signIndex=0;
+  $("originalPdfLink").href=data.originalUrl;
+  $("signForm").hidden=false;
+  showSignaturePage();
+  tell("signStatus","");
  }catch(e){$("signForm").hidden=true;tell("signStatus",e.message,true)}
 }
+function showSignaturePage(){
+ const page=signPages[signIndex];if(!page)return;
+ $("signStepTitle").textContent="İmza "+(signIndex+1)+" / "+signPages.length+" · "+page+". sayfa";
+ $("signStepHelp").textContent=page+". sayfayı oku, ardından aşağıdaki alana bu sayfa için yeni imzanı çiz.";
+ $("signPdf").src=$("originalPdfLink").href+"#page="+page+"&view=FitH";
+ $("prevSignature").hidden=signIndex===0;
+ $("nextSignature").hidden=signIndex===signPages.length-1;
+ $("submitSignature").hidden=signIndex!==signPages.length-1;
+ ctx.clearRect(0,0,pad.width,pad.height);ink=false;
+ const existing=signedPagePng[signIndex];
+ if(existing){
+  const idx=signIndex,image=new Image();
+  image.onload=()=>{if(signIndex===idx){ctx.clearRect(0,0,pad.width,pad.height);ctx.drawImage(image,0,0,pad.width,pad.height);ink=true}};
+  image.src="data:image/png;base64,"+existing;
+ }
+}
+function saveSignatureStep(){
+ if(!ink){tell("signStatus","Bu sayfa için önce imzanı çiz.",true);return false}
+ signedPagePng[signIndex]=pad.toDataURL("image/png").split(",")[1];
+ tell("signStatus","");
+ return true;
+}
+$("nextSignature").onclick=()=>{
+ if(!saveSignatureStep())return;
+ if(signIndex<signPages.length-1){signIndex++;showSignaturePage();$("signStepTitle").scrollIntoView({behavior:"smooth",block:"start"})}
+};
+$("prevSignature").onclick=()=>{
+ if(ink)signedPagePng[signIndex]=pad.toDataURL("image/png").split(",")[1];
+ if(signIndex>0){signIndex--;showSignaturePage();$("signStepTitle").scrollIntoView({behavior:"smooth",block:"start"})}
+};
 const pad=$("signatureCanvas"),ctx=pad.getContext("2d");
 ctx.strokeStyle="#142a43";ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";
 let drawing=false;
@@ -330,14 +379,16 @@ pad.addEventListener("pointermove",e=>{if(!drawing)return;e.preventDefault();con
 for(const name of ["pointerup","pointercancel","lostpointercapture"])pad.addEventListener(name,()=>{drawing=false});
 $("clearSignature").onclick=()=>{ctx.clearRect(0,0,pad.width,pad.height);ink=false;tell("signStatus","İmza temizlendi.")};
 $("submitSignature").onclick=async()=>{
- if(!ink){tell("signStatus","Önce imzanı çiz.",true);return}
- if(!confirm("Bu belgeyi imzalayıp göndermeyi onaylıyor musun?"))return;
- const btn=$("submitSignature");btn.disabled=true;tell("signStatus","İmzan kaydediliyor...");
+ if(!saveSignatureStep())return;
+ if(signedPagePng.some(x=>!x)){tell("signStatus","Eksik sayfa imzaları var. Önce diğer sayfaları imzala.",true);return}
+ if(!confirm(signPages.length+" sayfadaki ayrı imzalarını göndererek işlemi tamamlamak istiyor musun?"))return;
+ const btn=$("submitSignature");btn.disabled=true;tell("signStatus","Sayfa imzaların kaydediliyor...");
  try{
-  const png=pad.toDataURL("image/png").split(",")[1];
-  const r=await call("sign",{token:signToken,png});
-  $("signForm").hidden=true;$("signProgress").textContent="İşlemin tamamlandı.";
-  tell("signStatus",r.finalError?"✓ İmzan alındı. Son PDF hazırlanırken sorun oluştu; belge yöneticisi yeniden oluşturabilir.":"✓ İmzan başarıyla alındı. Teşekkürler.");
+  const signatures=signPages.map((page,i)=>({page,png:signedPagePng[i]}));
+  const r=await call("sign",{token:signToken,signatures});
+  $("signForm").hidden=true;$("signProgress").textContent="İşlemin tamamlandı: "+signatures.length+" ayrı sayfa imzalandı.";
+  signedPagePng=[];
+  tell("signStatus",r.finalError?"✓ İmzaların alındı. Yönetici PDF birleştirmeyi yeniden deneyebilir.":"✓ Tüm sayfa imzaların başarıyla alındı.");
  }catch(e){tell("signStatus",e.message,true)}finally{btn.disabled=false}
 };
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
