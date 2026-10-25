@@ -65,8 +65,13 @@
 </section>
 <section class="panel" id="invitesBox" hidden><h2>🔗 İmzacı Bağlantıları</h2><p class="notice warn">Bu üç özel bağlantıyı şimdi kopyala veya WhatsApp ile gönder. Güvenlik için bağlantıların tamamı daha sonra tekrar gösterilmez.</p><div id="invites"></div></section>
 <section class="panel">
-<div class="row" style="justify-content:space-between"><h2>📋 İmza Takibi · Belgelerim</h2><button class="secondary" id="refreshBtn">Yenile ↻</button></div>
-<p class="muted">Belgeleri yalnızca yükleyen yönetici görebilir. 3 imza tamamlanınca son PDF burada açılır.</p>
+<div class="row" style="justify-content:space-between"><h2>📋 İmza Takibi · Belgelerim</h2><button class="secondary" id="refreshBtn">Şimdi Yenile ↻</button></div>
+<div class="row" style="margin:9px 0">
+<button type="button" class="secondary" id="notifyPermission">🔔 Tarayıcı Bildirimlerini Aç</button>
+<span id="autoCheckStatus" class="miniNote">Otomatik kontrol başlatılıyor...</span>
+</div>
+<p class="muted">İmzalar bu sayfa açıkken yaklaşık 30 saniyede bir kontrol edilir. Yeni imza geldiğinde burada uyarı görünür; tarayıcı izni verirsen masaüstü bildirimi de alırsın. Üç imza tamamlanınca son PDF yalnızca yöneticiye açılır.</p>
+<div id="newSignatureAlert" class="notice" style="margin:10px 0" hidden role="status" aria-live="polite"></div>
 <div id="documentsList"></div><p id="listStatus" class="status"></p>
 </section>
 </div>
@@ -147,8 +152,11 @@ async function login(email,password){
  session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000};
  sessionStorage.setItem(STORE,JSON.stringify(session));
 }
-function adminView(){ $("adminLogin").hidden=true;$("adminApp").hidden=false;$("signerApp").hidden=true;void listDocs() }
-function logout(){session=null;sessionStorage.removeItem(STORE);$("adminLogin").hidden=false;$("adminApp").hidden=true;tell("loginStatus","Oturum kapatıldı.")}
+function adminView(){
+ $("adminLogin").hidden=true;$("adminApp").hidden=false;$("signerApp").hidden=true;
+ signatureSnapshot=null;startSignatureMonitoring();void listDocs();
+}
+function logout(){stopSignatureMonitoring();signatureSnapshot=null;session=null;sessionStorage.removeItem(STORE);$("adminLogin").hidden=false;$("adminApp").hidden=true;tell("loginStatus","Oturum kapatıldı.")}
 $("loginBtn").onclick=async()=>{
  const btn=$("loginBtn");btn.disabled=true;tell("loginStatus","Giriş yapılıyor...");
  try{await login($("loginEmail").value.trim(),$("loginPassword").value);$("loginPassword").value="";adminView()}
@@ -485,10 +493,58 @@ $("invites").onclick=async e=>{
  try{await navigator.clipboard.writeText(btn.dataset.copyLink);btn.textContent="✓ Kopyalandı"}
  catch{window.prompt("Bağlantıyı kopyala:",btn.dataset.copyLink)}
 };
-async function listDocs(){
- tell("listStatus","Liste yenileniyor...");
+let signatureSnapshot=null,signatureMonitorTimer=null,signatureListBusy=false;
+function stopSignatureMonitoring(){
+ if(signatureMonitorTimer){clearInterval(signatureMonitorTimer);signatureMonitorTimer=null}
+}
+function startSignatureMonitoring(){
+ stopSignatureMonitoring();
+ signatureMonitorTimer=setInterval(()=>{
+  if(!$("adminApp").hidden && !signatureListBusy)void listDocs({silent:true});
+ },30000);
+ $("autoCheckStatus").textContent="✓ Otomatik kontrol aktif · 30 saniyede bir";
+}
+function notifyNewSignatures(docs){
+ const updated=new Map();
+ const events=[];
+ for(const d of docs){
+  for(const signer of d.signers||[]){
+   const key=d.id+":"+signer.slot;
+   const isSigned=signer.status==="signed";
+   updated.set(key,isSigned);
+   if(signatureSnapshot!==null && signatureSnapshot.has(key) && !signatureSnapshot.get(key) && isSigned){
+    events.push({document:d.title,person:signer.name,finished:d.status==="complete"});
+   }
+  }
+ }
+ signatureSnapshot=updated;
+ if(!events.length)return;
+ const completed=events.some(e=>e.finished);
+ const msg=completed?("✅ Üç imza tamamlandı! Son PDF hazır. "+events[0].document):
+   ("✍️ "+events.map(e=>e.person).join(", ")+" imzaladı. "+events[0].document);
+ const alert=$("newSignatureAlert");alert.hidden=false;alert.textContent=msg;
+ if("Notification" in window && Notification.permission==="granted"){
+  try{new Notification(completed?"PDF İmzala · Belge tamamlandı":"PDF İmzala · Yeni imza",{body:msg,tag:"pdf-imza-signature-update"})}catch{}
+ }
+}
+$("notifyPermission").onclick=async()=>{
+ if(!("Notification" in window)){tell("listStatus","Bu tarayıcı masaüstü bildirimini desteklemiyor. Ekrandaki uyarılar çalışmaya devam eder.",true);return}
+ if(Notification.permission==="denied"){tell("listStatus","Bildirimler tarayıcıdan engellenmiş. Adres çubuğundaki site izinlerinden açabilirsin.",true);return}
+ try{
+  const permission=await Notification.requestPermission();
+  if(permission==="granted"){
+   $("notifyPermission").textContent="✓ Bildirimler Açık";
+   tell("listStatus","Tarayıcı bildirimleri açıldı. Bu sayfa açıkken yeni imzalardan haberdar olacaksın.");
+  }else tell("listStatus","Bildirim izni verilmedi. Ekrandaki otomatik güncellemeler devam edecek.");
+ }catch(e){tell("listStatus","Tarayıcı bildirimleri açılamadı: "+e.message,true)}
+};
+async function listDocs({silent=false}={}){
+ if(signatureListBusy||$("adminApp").hidden)return;
+ signatureListBusy=true;
+ if(!silent)tell("listStatus","Liste yenileniyor...");
  try{
   const data=await call("list",{},true);
+  notifyNewSignatures(data.documents||[]);
   $("documentsList").innerHTML=data.documents.length?data.documents.map(d=>{
    const signed=(d.signers||[]).filter(s=>s.status==="signed").length;
    return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<3?"wait":"")+'">'+signed+'/3 imza · '+(d.status==="complete"?"Tamamlandı":signed===3?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
@@ -497,8 +553,12 @@ async function listDocs(){
     (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===3?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
     '</div></div>';
   }).join(""):'<p class="muted">Henüz oluşturulmuş belge yok.</p>';
-  tell("listStatus","");
- }catch(e){tell("listStatus",e.message,true)}
+  if(!silent)tell("listStatus","");
+  $("autoCheckStatus").textContent="✓ Son kontrol: "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})+" · 30 sn'de bir";
+ }catch(e){
+  if(!silent)tell("listStatus",e.message,true);
+  $("autoCheckStatus").textContent="Kontrol başarısız; tekrar denenecek";
+ }finally{signatureListBusy=false}
 }
 $("refreshBtn").onclick=()=>void listDocs();
 $("documentsList").onclick=async e=>{
