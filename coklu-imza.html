@@ -97,22 +97,17 @@
 <button id="nextSignature" hidden>Bu Sayfayı Kaydet ve Sonraki Sayfa ›</button>
 <button id="submitSignature">İmzalarımı Önizle →</button>
 </div>
-<p class="muted">Her sayfanın imzasını ayrı ayrı çiz. Son sayfadan sonra önizlemede yerlerini kontrol ederek gönder.</p>
+<p class="muted">Her sayfayı imzala, önizlemede kontrol et. Gerekirse düzelt; ardından doğrudan gönder.</p>
 </div>
 <div id="signPreview" class="signReview" hidden>
 <h3>🔍 İmzalarını Göndermeden Önce Kontrol Et</h3>
 <p class="notice">Aşağıda, <b>senin imzalarının PDF üzerinde görüneceği yerler</b> var. Diğer kişilerin imzaları bu önizlemede gösterilmeyebilir. Tüm imzalar tamamlandığında tek PDF'yi belgeyi oluşturan yönetici görecek.</p>
 <p id="signPreviewProgress" class="muted"></p>
 <div id="signPreviewPages"></div>
-<label class="signConsent" for="signPreviewConsent">
-<input type="checkbox" id="signPreviewConsent">
-<span><b>Belgemi ve imzalarımın konumlarını inceledim.</b> Gösterilen imzaların bu belgeye uygulanarak yöneticiye iletilmesini onaylıyorum.</span>
-</label>
 <div class="row">
-<button id="backToSignature" class="secondary" type="button">← İmzalarımı Düzenle</button>
-<button id="confirmSignature" type="button" disabled>✓ Onaylıyorum, İmzalarımı Gönder</button>
+<button id="backToSignature" class="secondary" type="button">← İmzaları Düzelt</button>
+<button id="confirmSignature" type="button">✓ İmzaları Gönder</button>
 </div>
-<p class="muted">Bu onaydan önce sunucuya hiçbir imza gönderilmez.</p>
 </div>
 <p id="signStatus" class="status" role="status"></p>
 </section>
@@ -637,7 +632,7 @@ async function signerView(token){
     [{page:Number(data.page||1),x:Number(data.x||0.06),y:Number(data.y||0.85)}];
   signedPagePng=new Array(signPages.length).fill(null);
   signIndex=0;
-  $("signPreview").hidden=true;$("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
+  $("signPreview").hidden=true;$("confirmSignature").disabled=false;
   $("originalPdfLink").href=data.originalUrl;
   $("signForm").hidden=false;
   showSignaturePage();
@@ -724,7 +719,7 @@ async function buildSignedPagePreview(){
  const preview=$("signPreview"),root=$("signPreviewPages");
  root.replaceChildren();
  $("signPreviewProgress").textContent="İmza yerleri hazırlanıyor...";
- $("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
+ $("confirmSignature").disabled=false;
  preview.hidden=false;$("signForm").hidden=true;
  try{
   const width=Math.max(210,Math.min(670,root.clientWidth-26||600));
@@ -751,7 +746,7 @@ async function buildSignedPagePreview(){
    canvas.getContext("2d").drawImage(img,canvas.width*position.x,canvas.height*position.y,canvas.width*(position.w??0.27),canvas.height*(position.h??0.09));
    $("signPreviewProgress").textContent=(idx+1)+" / "+signPages.length+" sayfanın imzası hazır...";
   }
-  $("signPreviewProgress").textContent=signPages.length+" sayfadaki imzaların belge üzerindeki yerlerini incele. Uygunsa aşağıdaki kutuyu işaretle ve gönder.";
+  $("signPreviewProgress").textContent=signPages.length+" sayfadaki imzaların belge üzerindeki yerlerini incele. Düzeltmek istersen geri dön, uygunsa doğrudan gönder.";
   preview.scrollIntoView({behavior:"smooth",block:"start"});
  }catch(err){
   preview.hidden=true;$("signForm").hidden=false;
@@ -762,28 +757,27 @@ async function buildSignedPagePreview(){
 $("submitSignature").onclick=()=>void buildSignedPagePreview();
 $("backToSignature").onclick=()=>{
  $("signPreview").hidden=true;$("signForm").hidden=false;
- $("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
+ $("confirmSignature").disabled=false;
  showSignaturePage();
  $("signStepTitle").scrollIntoView({behavior:"smooth",block:"start"});
 };
-$("signPreviewConsent").onchange=()=>{$("confirmSignature").disabled=!$("signPreviewConsent").checked};
 $("confirmSignature").onclick=async()=>{
- if(!$("signPreviewConsent").checked||$("signPreview").hidden){tell("signStatus","Önizlemeyi inceleyip onaylamalısın.",true);return}
+ if($("signPreview").hidden){tell("signStatus","İmza önizlemesi henüz açılmadı.",true);return}
  if(signedPagePng.some(x=>!x)||signedPagePng.length!==signPages.length){tell("signStatus","Eksik sayfa imzası var.",true);return}
  const btn=$("confirmSignature");btn.disabled=true;$("backToSignature").disabled=true;
- tell("signStatus","Onayladığın imzalar güvenli biçimde gönderiliyor...");
+ tell("signStatus","İmzaların güvenli biçimde gönderiliyor...");
  try{
   const signatures=signPages.map((page,i)=>({page,png:signedPagePng[i]}));
   const result=await call("sign",{token:signToken,signatures});
   $("signPreview").hidden=true;$("signForm").hidden=true;
   $("signProgress").textContent="İşlemin tamamlandı: "+signatures.length+" sayfanın imzaları kaydedildi.";
   signedPagePng=[];
-  tell("signStatus",result.finalError?"✓ İmzaların alındı. Yönetici PDF birleştirmeyi yeniden deneyebilir.":"✓ Önizleyip onayladığın tüm imzaların başarıyla alındı.");
+  tell("signStatus",result.finalError?"✓ İmzaların alındı. Yönetici PDF birleştirmeyi yeniden deneyebilir.":"✓ Tüm imzaların başarıyla alındı.");
  }catch(err){
   tell("signStatus","Gönderilemedi: "+err.message+". Önizleme korunuyor; tekrar deneyebilirsin.",true);
  }finally{
   $("backToSignature").disabled=false;
-  btn.disabled=!$("signPreviewConsent").checked;
+  btn.disabled=false;
  }
 };
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
