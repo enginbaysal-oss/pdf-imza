@@ -15,7 +15,7 @@
 .pdfPageMarkers .marker.selected{border-style:solid;box-shadow:0 0 0 3px #ffba4d,0 3px 10px #263d5340;z-index:3}
 .pdfPageMarkers .marker:active{cursor:grabbing}
 .pdfPageMarkers .marker:focus-visible{outline:3px solid #197ad5;outline-offset:2px}
-.pdfPaper.readyToPlace .marker{cursor:grab}
+.pdfPaper.readyToPlace .marker{cursor:grab}.signerField{border:1px solid #dde8ef;border-radius:11px;padding:9px 11px;background:#fafdff}.signerField .row{justify-content:space-between;margin:0}.signerField .removeSigner{font-size:11px;padding:6px 8px;color:#995040;background:#fbeae6}
 @media(max-width:650px){.placementAdjust button{min-width:64px;padding:10px}.pdfPageMarkers .marker{font-size:10px}}
 </style>
 </head>
@@ -31,19 +31,16 @@
 
 <div id="adminApp" hidden>
 <section class="panel">
-<div class="row" style="justify-content:space-between"><h2>Yeni 3 Kişilik İmza Toplama</h2><button id="logoutBtn" class="secondary">Çıkış Yap</button></div>
+<div class="row" style="justify-content:space-between"><h2>Yeni Çoklu İmza Toplama</h2><button id="logoutBtn" class="secondary">Çıkış Yap</button></div>
 <p class="notice warn">Deneme sürümü: İmzalar elle çizilerek PDF'ye işlenir. Nitelikli elektronik imza yerine geçmez. Kimlik doğrulaması bağlantıya erişimle sınırlıdır; hassas veya gerçek sözleşmelerle test etmeyin.</p>
 <label for="docTitle">Belge adı</label><input id="docTitle" maxlength="180" placeholder="Örnek: Deneme kira sözleşmesi">
 <label for="pdfFile">PDF dosyası (en fazla 6 MB, 100 sayfa)</label><input id="pdfFile" type="file" accept="application/pdf,.pdf">
-<div class="grid" id="nameGrid">
-<div><label for="name1">1. imzacı</label><input id="name1" maxlength="100" value="Mal sahibi"></div>
-<div><label for="name2">2. imzacı</label><input id="name2" maxlength="100" value="Kiracı"></div>
-<div><label for="name3">3. imzacı</label><input id="name3" maxlength="100" value="Kefil"></div>
-</div>
+<div class="grid" id="nameGrid"></div>
+<div class="row" style="margin:10px 0 15px"><button id="addSigner" class="secondary" type="button">+ İmzacı Ekle</button><span class="muted" id="signerCountHint"></span></div>
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
 <p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada kutunun <b>ortasının olmasını istediğin yere</b> bir kez dokun. Kutuyu sonradan <b>fareyle veya parmağınla sürükleyebilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
-<div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
+<div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
 <div id="placementAdjust" class="placementAdjust" hidden>
 <strong id="selectedPlaceName">Seçili imza kutusu</strong>
 <p class="muted">Kutuyu sürükle veya aşağıdaki oklarla yerini hassas ayarla. Klavyenin yön tuşları da çalışır.</p>
@@ -61,17 +58,17 @@
 <p id="placementSummary" class="notice" role="status" aria-live="polite"></p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
 </div>
-<div class="row" style="margin-top:15px"><button id="createBtn" disabled>3 İmza Bağlantısı Oluştur</button></div>
+<div class="row" style="margin-top:15px"><button id="createBtn" disabled>İmza Bağlantılarını Oluştur</button></div>
 <p id="createStatus" class="status" role="status"></p>
 </section>
-<section class="panel" id="invitesBox" hidden><h2>🔗 İmzacı Bağlantıları</h2><p class="notice warn">Bu üç özel bağlantıyı şimdi kopyala veya WhatsApp ile gönder. Güvenlik için bağlantıların tamamı daha sonra tekrar gösterilmez.</p><div id="invites"></div></section>
+<section class="panel" id="invitesBox" hidden><h2>🔗 İmzacı Bağlantıları</h2><p class="notice warn">Özel imza bağlantılarını şimdi kopyala veya WhatsApp ile gönder. Güvenlik için bağlantıların tamamı daha sonra tekrar gösterilmez.</p><div id="invites"></div></section>
 <section class="panel">
 <div class="row" style="justify-content:space-between"><h2>📋 İmza Takibi · Belgelerim</h2><button class="secondary" id="refreshBtn">Şimdi Yenile ↻</button></div>
 <div class="row" style="margin:9px 0">
 <button type="button" class="secondary" id="notifyPermission">🔔 Tarayıcı Bildirimlerini Aç</button>
 <span id="autoCheckStatus" class="miniNote">Otomatik kontrol başlatılıyor...</span>
 </div>
-<p class="muted">İmzalar bu sayfa açıkken yaklaşık 30 saniyede bir kontrol edilir. Yeni imza geldiğinde burada uyarı görünür; tarayıcı izni verirsen masaüstü bildirimi de alırsın. Üç imza tamamlanınca son PDF yalnızca yöneticiye açılır.</p>
+<p class="muted">İmzalar bu sayfa açıkken yaklaşık 30 saniyede bir kontrol edilir. Yeni imza geldiğinde burada uyarı görünür; tarayıcı izni verirsen masaüstü bildirimi de alırsın. Tüm imzacılar tamamlayınca son PDF yalnızca yöneticiye açılır.</p>
 <div id="newSignatureAlert" class="notice" style="margin:10px 0" hidden role="status" aria-live="polite"></div>
 <div id="documentsList"></div><p id="listStatus" class="status"></p>
 </section>
@@ -120,12 +117,40 @@
 <script type="module">
 const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPlacements=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
+let signerNames=["Mal sahibi","Kiracı","Kefil"];let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPlacements=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
 function initialLocations(){
  // Imza kutulari otomatik eklenmez; yonetici gereken sayfalari secer.
- return [[],[],[]];
+ return signerNames.map(()=>[]);
 }
+function renderSignerFields(){
+ const chosen=Number($("whoPlace").value||0);
+ $("nameGrid").innerHTML=signerNames.map((name,i)=>'<div class="signerField"><div class="row"><label for="name'+(i+1)+'">'+(i+1)+'. imzacı</label><button type="button" class="removeSigner" data-remove-signer="'+i+'" '+(documentCreated||signerNames.length===1?'disabled':'')+'>✕ Kaldır</button></div><input data-signer-name="'+i+'" id="name'+(i+1)+'" maxlength="100" value="'+xss(name)+'" '+(documentCreated?'disabled':'')+'></div>').join("");
+ $("whoPlace").innerHTML=signerNames.map((name,i)=>'<option value="'+i+'">'+(i+1)+'. '+xss(name||"İmzacı")+'</option>').join("");
+ $("whoPlace").value=String(Math.min(chosen,signerNames.length-1));
+ $("addSigner").disabled=documentCreated||signerNames.length>=30;
+ $("signerCountHint").textContent=signerNames.length+" imzacı · En fazla 30 kişi";
+ if(pdfDoc)renderMarkers();
+}
+$("nameGrid").addEventListener("input",event=>{
+ const input=event.target.closest("[data-signer-name]");if(!input)return;
+ const i=Number(input.dataset.signerName);signerNames[i]=input.value;
+ const option=$("whoPlace").querySelector('option[value="'+i+'"]');if(option)option.textContent=(i+1)+". "+(input.value||"İmzacı");
+ if(pdfDoc)renderMarkers();
+});
+$("nameGrid").addEventListener("click",event=>{
+ const btn=event.target.closest("[data-remove-signer]");
+ if(!btn||documentCreated||signerNames.length===1)return;
+ const i=Number(btn.dataset.removeSigner);
+ signerNames.splice(i,1);locations.splice(i,1);selectedPlacement=null;placementArmed=false;
+ renderSignerFields();
+});
+$("addSigner").onclick=()=>{
+ if(documentCreated||signerNames.length>=30)return;
+ signerNames.push("");locations.push([]);renderSignerFields();
+ $("name"+signerNames.length)?.focus();
+};
+renderSignerFields();
 function safeLink(s){return String(s||"").startsWith("https://")?s:""}
 async function call(action,payload={},authorized=false){
  const headers={"Content-Type":"application/json",apikey:KEY};
@@ -234,16 +259,16 @@ async function renderSheet(n){
 }
 function renderMarkers(){
  const total=locations.reduce((sum,points)=>sum+points.length,0);
- const allAssigned=locations.length===3&&locations.every(points=>points.length>0);
+ const allAssigned=locations.length===signerNames.length&&locations.length>0&&locations.every(points=>points.length>0);
  $("createBtn").disabled=!selectedFile||!allAssigned||creatingDoc||documentCreated;
  $("addPlacement").disabled=!selectedFile||documentCreated;
  $("addPlacement").classList.toggle("armed",placementArmed);
  $("addPlacement").setAttribute("aria-pressed",String(placementArmed));
  $("addPlacement").textContent=placementArmed?"İptal · Sayfaya dokunma":"+ İmza Kutusu Ekle";
- if(pdfDoc&&locations.length===3){
-  $("placementSummary").innerHTML='<b>Yerleştirilen alanlar: '+total+'</b> · '+(allAssigned?'Üç kişi için de en az bir alan hazır.':'Üç kişinin her birine en az bir imza alanı seç.')+
+ if(pdfDoc&&locations.length===signerNames.length){
+  $("placementSummary").innerHTML='<b>Yerleştirilen alanlar: '+total+'</b> · '+(allAssigned?'Tüm imzacılar için en az bir alan hazır.':'Her imzacıya en az bir imza alanı seç.')+
     locations.map((points,i)=>{
-     const name=$("name"+(i+1)).value.trim()||((i+1)+". imzacı");
+     const name=signerNames[i]?.trim()||((i+1)+". imzacı");
      const pages=points.map(p=>p.page).sort((a,b)=>a-b).join(", ")||"Henüz seçilmedi";
      return '<div style="margin-top:5px">'+xss(name)+': '+xss(pages)+(points.length?' (sayfa)':'')+'</div>';
     }).join("");
@@ -458,7 +483,7 @@ $("rotateAll180").onclick=async()=>{
  }
  tell("createStatus","PDF 180° döndürüldü. İmza kutularının konumlarını kontrol et.");
 };
-for(let i=1;i<=3;i++)$("name"+i).addEventListener("input",renderMarkers);
+
 async function b64(file){
  const bytes=await fileBytes(file);let result="";
  for(let i=0;i<bytes.length;i+=0x8000)result+=String.fromCharCode(...bytes.slice(i,i+0x8000));
@@ -467,12 +492,9 @@ async function b64(file){
 $("createBtn").onclick=async()=>{
  if(!selectedFile||!pdfDoc){tell("createStatus","Önce PDF seç.",true);return}
  if(documentCreated||creatingDoc)return;
- const signers=locations.map((points,i)=>({name:$("name"+(i+1)).value.trim(),placements:points.map(p=>({...p}))}));
- if(signers.some(s=>!s.name||!s.placements.length)){tell("createStatus","Üç kişinin adını ve imza sayfalarını kontrol et.",true);return}
- if(pageCount===3 && signers.some(s=>s.placements.length<3)){
-  const summary=signers.map((signer,i)=>(i+1)+". imzacı: "+signer.placements.map(p=>p.page).sort((a,b)=>a-b).join(", ")+". sayfa").join("\n");
-  if(!confirm("Bu PDF 3 sayfalık, ancak üç imzacının hepsi her sayfaya yerleştirilmedi.\n\n"+summary+"\n\nÜç kişi üç sayfanın tamamını imzalayacaksa İPTAL'e basıp eksik kutuları ekle. Sadece seçili sayfalar imzalansın istiyorsan TAMAM'a bas."))return;
- }
+ const signers=locations.map((points,i)=>({name:signerNames[i]?.trim(),placements:points.map(p=>({...p}))}));
+ if(signers.some(s=>!s.name||!s.placements.length)){tell("createStatus","Her imzacının adını ve imza sayfalarını kontrol et.",true);return}
+
  const title=$("docTitle").value.trim();
  if(!title){tell("createStatus","Belge adını yaz.",true);return}
  const btn=$("createBtn");creatingDoc=true;btn.disabled=true;tell("createStatus","PDF yükleniyor ve özel imza bağlantıları hazırlanıyor...");
@@ -486,9 +508,9 @@ $("createBtn").onclick=async()=>{
    return '<div class="card"><strong>'+xss(item.slot)+". imzacı: "+xss(item.name)+'</strong><p class="break miniNote">'+xss(link)+'</p><div class="row"><button class="secondary" type="button" data-copy-link="'+xss(link)+'">Bağlantıyı Kopyala</button><a class="btn" target="_blank" rel="noopener noreferrer" href="'+xss(wa)+'">WhatsApp ile Gönder ↗</a></div></div>';
   }).join("");
   $("invitesBox").hidden=false;
-  documentCreated=true;placementArmed=false;renderMarkers();
+  documentCreated=true;placementArmed=false;renderSignerFields();renderMarkers();
   $("invitesBox").scrollIntoView({behavior:"smooth"});
-  tell("createStatus","Üç özel bağlantı hazır. Linkleri kişilere gönder. Tüm imzalar tamamlandığında son PDF yalnızca yönetici ekranında görünecek.");
+  tell("createStatus","İmzacılara özel bağlantılar hazır. Linkleri kişilere gönder. Tüm imzalar tamamlandığında son PDF yalnızca yönetici ekranında görünecek.");
   await listDocs();
  }catch(e){tell("createStatus","Belge oluşturulamadı: "+e.message,true)}
  finally{creatingDoc=false;renderMarkers()}
@@ -525,7 +547,7 @@ function notifyNewSignatures(docs){
  signatureSnapshot=updated;
  if(!events.length)return;
  const completed=events.some(e=>e.finished);
- const msg=completed?("✅ Üç imza tamamlandı! Son PDF hazır. "+events[0].document):
+ const msg=completed?("✅ Tüm imzalar tamamlandı! Son PDF hazır. "+events[0].document):
    ("✍️ "+events.map(e=>e.person).join(", ")+" imzaladı. "+events[0].document);
  const alert=$("newSignatureAlert");alert.hidden=false;alert.textContent=msg;
  if("Notification" in window && Notification.permission==="granted"){
@@ -552,10 +574,10 @@ async function listDocs({silent=false}={}){
   notifyNewSignatures(data.documents||[]);
   $("documentsList").innerHTML=data.documents.length?data.documents.map(d=>{
    const signed=(d.signers||[]).filter(s=>s.status==="signed").length;
-   return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<3?"wait":"")+'">'+signed+'/3 imza · '+(d.status==="complete"?"Tamamlandı":signed===3?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
+   return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<(d.signers||[]).length?"wait":"")+'">'+signed+'/'+(d.signers||[]).length+' imza · '+(d.status==="complete"?"Tamamlandı":signed===(d.signers||[]).length?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
     (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b> · '+xss(s.page_count||1)+' sayfa</div>').join("")+
     '<div class="row" style="margin-top:12px"><button class="secondary" data-admin-open="'+xss(d.id)+'" data-kind="original">Orijinal PDF</button>'+
-    (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===3?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
+    (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===(d.signers||[]).length?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
     '</div></div>';
   }).join(""):'<p class="muted">Henüz oluşturulmuş belge yok.</p>';
   if(!silent)tell("listStatus","");
@@ -583,7 +605,7 @@ async function signerView(token){
  try{
   const data=await call("open",{token});
   $("signSummary").textContent="Belge: "+data.document+" · İmzacı: "+data.name;
-  $("signProgress").textContent="Toplanan kişiler: "+data.signedCount+" / 3";
+  $("signProgress").textContent="Toplanan kişiler: "+data.signedCount+" / "+(data.totalSigners||3);
   if(data.alreadySigned){
    $("signForm").hidden=true;tell("signStatus","✓ İmzaların kaydedildi. Son belge yalnızca yönetici ekranında olacak.");return;
   }
