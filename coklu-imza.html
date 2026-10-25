@@ -205,7 +205,7 @@ function renderMarkers(){
    '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
   const removals=item.sheet.querySelector("[data-page-placements]");
   removals.innerHTML=locations.flatMap((points,i)=>points.some(p=>p.page===n)?[
-   '<button type="button" data-remove-place="'+n+'" data-signer-index="'+i+'" title="Bu sayfadaki imza kutusunu kaldır">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+' · ✕ Sil</button>'
+   '<button type="button" '+(documentCreated?'disabled ':'')+'data-remove-place="'+n+'" data-signer-index="'+i+'" title="Bu sayfadaki imza kutusunu kaldır">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+' · ✕ Sil</button>'
   ]:[]).join("");
   item.sheet.querySelector("[data-rotation-label]").textContent=" · "+item.rotation+"°";
  }
@@ -253,6 +253,7 @@ $("pdfPages").onclick=event=>{
  if(rotate){void rotateSheet(Number(rotate.dataset.rotatePage),90);return}
  const remove=event.target.closest("[data-remove-place]");
  if(remove){
+  if(documentCreated){tell("createStatus","Bu belge için bağlantılar oluşturuldu. Alanları değiştirmek için yeniden PDF yükleyerek yeni bağlantılar oluştur.",true);return}
   const page=Number(remove.dataset.removePlace),who=Number(remove.dataset.signerIndex);
   locations[who]=locations[who].filter(position=>position.page!==page);
   placementArmed=false;renderMarkers();
