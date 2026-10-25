@@ -5,6 +5,18 @@
 <title>Çoklu İmza Topla | PDF İmzala</title>
 <style>
 :root{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#17344a;background:#f0f5f8}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(112deg,#16456e,#0d8990);color:#fff;padding:17px 20px}header nav{display:flex;align-items:center;justify-content:space-between;max-width:1050px;margin:auto;gap:12px}header h1{font-size:23px;margin:0;font-weight:850}header a{color:white;text-decoration:none;font-size:13px;font-weight:650}main{max-width:1050px;margin:16px auto;padding:0 14px 60px}.panel{background:white;padding:19px;border-radius:16px;margin:14px 0;box-shadow:0 3px 18px #23415714}h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px}p{margin:6px 0 12px}label{display:block;margin-top:10px;margin-bottom:5px;font-weight:700;font-size:13px}input,select{width:100%;background:#fff;color:#172f44;border:1px solid #bdd2df;border-radius:10px;padding:12px;font:inherit}input[type=file]{padding:9px}button,.btn{background:#158f72;color:white;border:0;padding:11px 16px;border-radius:10px;font:inherit;font-weight:760;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;gap:5px}button.secondary,.btn.secondary{background:#e4eef3;color:#18516b}button.danger{background:#f2e4e2;color:#903b3b}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:0 0 auto}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.muted{font-size:13px;color:#5e7180}.notice{padding:12px;background:#edf8f3;border:1px solid #cbe8da;border-radius:10px;font-size:13px}.warn{background:#fff5e8;border-color:#f4d2ac}.status{min-height:18px;color:#176e57;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#b43f37!important}.card{border:1px solid #dce9ee;border-radius:12px;padding:12px;margin:10px 0;background:#fafcfe}.card strong{display:block}.chip{display:inline-block;padding:4px 8px;background:#e1f2e9;color:#26794b;border-radius:12px;font-size:12px;font-weight:750}.chip.wait{background:#fff2dd;color:#905b1e}#pdfPages{max-width:760px;margin:12px auto;display:flex;flex-direction:column;gap:18px;align-items:stretch;min-width:0}.pdfSheet{padding:10px;background:#e9f0f4;border:1px solid #d1dfe7;border-radius:13px;min-width:0}.pdfPageToolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 9px;line-height:1.4;font-size:13px;color:#37566c;font-weight:700}.pdfPageToolbar button{padding:6px 10px;font-size:12px}.pagePlacementControls{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin-top:3px}.pagePlacementControls button{padding:7px 10px;background:#fbe6e3;color:#922f29;border:1px solid #edc6c0;font-weight:750}.pagePlacementControls:empty{display:none}#addPlacement.armed{background:#bd6b0b;color:#fff}.pdfPaper.readyToPlace{outline:3px solid #ef9d23;outline-offset:2px}.pdfPaper{cursor:default}.pdfPaper{position:relative;max-width:100%;width:100%;margin:auto;background:white;line-height:0;cursor:crosshair;box-shadow:0 2px 8px #193f591c;overflow:hidden}.pdfPageCanvas{display:block;width:100%;height:auto}.pdfPageMarkers{position:absolute;inset:0;pointer-events:none}.marker{position:absolute;border:2px dashed #1f90c4;background:#b8e3ee77;border-radius:4px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;line-height:1.2;color:#124963;overflow:hidden}.marker.active{border:3px solid #fa9119;background:#ffe5ab88;color:#683507}.pdfLoading{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font-size:12px;color:#5d7c8d;pointer-events:none;line-height:1.4}.pdfPageCanvas:not([width]){min-height:200px}.signArea{border:2px dashed #a4bfcc;border-radius:13px;background:#fff;max-width:800px;overflow:hidden}#signatureCanvas{width:100%;height:auto;touch-action:none;display:block;background:#fff;cursor:crosshair;aspect-ratio:3.33}iframe.pdfView{width:100%;height:440px;border:1px solid #d8e0e6;border-radius:12px;background:#eee}.personLine{border-top:1px solid #e5edf1;padding:8px 0}.personLine:first-child{border:0}.break{overflow-wrap:anywhere;word-break:break-word}a{color:#14689a}.miniNote{font-size:12px;color:#687986}section[hidden],div[hidden]{display:none!important}@media(max-width:650px){.grid,.grid.two{grid-template-columns:1fr}.panel{padding:13px}header h1{font-size:19px}iframe.pdfView{height:380px}button{padding:11px}.row>*{max-width:100%}}
+
+.placementAdjust{background:#f1f8ff;border:1px solid #bed8ed;border-radius:12px;padding:12px;margin:12px 0}
+.placementAdjust strong{display:block;font-size:14px;margin-bottom:6px;color:#164d6a}
+.placementAdjust .row{gap:7px}
+.placementAdjust button{padding:9px 12px;min-width:78px;background:#d6eafa;color:#164d6a}
+.placementAdjust select{width:auto;max-width:180px;padding:8px}
+.pdfPageMarkers .marker{pointer-events:auto;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;z-index:2;outline:none}
+.pdfPageMarkers .marker.selected{border-style:solid;box-shadow:0 0 0 3px #ffba4d,0 3px 10px #263d5340;z-index:3}
+.pdfPageMarkers .marker:active{cursor:grabbing}
+.pdfPageMarkers .marker:focus-visible{outline:3px solid #197ad5;outline-offset:2px}
+.pdfPaper.readyToPlace .marker{cursor:grab}
+@media(max-width:650px){.placementAdjust button{min-width:64px;padding:10px}.pdfPageMarkers .marker{font-size:10px}}
 </style>
 </head>
 <body>
@@ -30,9 +42,21 @@
 </div>
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
-<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada istediğin yere bir kez dokun. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
+<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada istediğin yere bir kez dokun. Kutuyu sonradan <b>fareyle veya parmağınla sürükleyebilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
 <div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
-<p class="muted">Sayfalar alt alta görünür. <b>İmza olmayan sayfalara kutu ekleme.</b> Yanlış kutuyu sayfanın üzerindeki <b>✕ Sil</b> düğmesiyle kaldırabilir veya konumunu yeniden seçebilirsin. Her kişi, yalnızca kendisine ayırdığın sayfaları ayrı ayrı imzalar. Ters sayfa için <b>90° Döndür</b> kullan.</p>
+<div id="placementAdjust" class="placementAdjust" hidden>
+<strong id="selectedPlaceName">Seçili imza kutusu</strong>
+<p class="muted">Kutuyu sürükle veya aşağıdaki oklarla yerini hassas ayarla. Klavyenin yön tuşları da çalışır.</p>
+<div class="row">
+<button type="button" data-move-x="-1" data-move-y="0" aria-label="İmza kutusunu sola kaydır">← Sola</button>
+<button type="button" data-move-x="0" data-move-y="-1" aria-label="İmza kutusunu yukarı kaydır">↑ Yukarı</button>
+<button type="button" data-move-x="0" data-move-y="1" aria-label="İmza kutusunu aşağı kaydır">↓ Aşağı</button>
+<button type="button" data-move-x="1" data-move-y="0" aria-label="İmza kutusunu sağa kaydır">Sağa →</button>
+<label for="nudgePrecision" style="margin:0 0 0 5px">Adım</label>
+<select id="nudgePrecision" aria-label="İmza kutusu kaydırma miktarı"><option value="0.005">Normal</option><option value="0.001">Hassas</option></select>
+</div>
+</div>
+<p class="muted">Sayfalar alt alta görünür. <b>İmza olmayan sayfalara kutu ekleme.</b> Bir kutuyu seçmek için üzerine dokun; taşımak için sürükle. Yanlış kutuyu sayfanın üzerindeki <b>✕ Sil</b> düğmesiyle kaldırabilirsin. Her kişi yalnızca kendisine ayırdığın sayfaları ayrı ayrı imzalar. Ters sayfa için <b>90° Döndür</b> kullan.</p>
 <p id="placementSummary" class="notice" role="status" aria-live="polite"></p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
 </div>
@@ -75,7 +99,7 @@
 <script type="module">
 const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false;
+let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
 function initialLocations(){
  // Imza kutulari otomatik eklenmez; yonetici gereken sayfalari secer.
@@ -126,6 +150,7 @@ async function readerPdf(file){
 }
 
 function resetPagePreview(){
+ selectedPlacement=null;dragPlacement=null;ignorePaperClickUntil=0;
  if(pageObserver){pageObserver.disconnect();pageObserver=null}
  for(const item of pageViews.values()){if(item.task)try{item.task.cancel()}catch{}}
  pageViews.clear();$("pdfPages").replaceChildren();
@@ -202,14 +227,108 @@ function renderMarkers(){
  for(const [n,item] of pageViews){
   item.paper.classList.toggle("readyToPlace",placementArmed);
   item.markers.innerHTML=locations.flatMap((positions,i)=>positions.filter(loc=>loc.page===n).map(loc=>
-   '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
+   '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+(selectedPlacement?.who===i&&selectedPlacement?.page===n?" selected":"")+'" data-drag-place="1" data-drag-page="'+n+'" data-drag-who="'+i+'" tabindex="0" role="button" aria-label="'+xss(($("name"+(i+1)).value||((i+1)+". imzacı"))+" imzası, "+n+". sayfa; taşımak için sürükleyin veya yön tuşlarını kullanın")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
   const removals=item.sheet.querySelector("[data-page-placements]");
   removals.innerHTML=locations.flatMap((points,i)=>points.some(p=>p.page===n)?[
    '<button type="button" '+(documentCreated?'disabled ':'')+'data-remove-place="'+n+'" data-signer-index="'+i+'" title="Bu sayfadaki imza kutusunu kaldır">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+' · ✕ Sil</button>'
   ]:[]).join("");
   item.sheet.querySelector("[data-rotation-label]").textContent=" · "+item.rotation+"°";
  }
+ updatePlacementControls();
 }
+
+const clampPlace=(value,max)=>Math.max(0,Math.min(max,value));
+function selectedLocation(){
+ if(!selectedPlacement)return null;
+ const {who,page}=selectedPlacement;
+ const loc=locations[who]?.find(p=>p.page===page);
+ if(!loc){selectedPlacement=null;return null}
+ return {who,page,loc};
+}
+function updatePlacementControls(){
+ const selected=selectedLocation();
+ $("placementAdjust").hidden=!selected||documentCreated;
+ if(!selected)return;
+ $("selectedPlaceName").textContent="✥ "+($("name"+(selected.who+1)).value.trim()||((selected.who+1)+". imzacı"))+" · "+selected.page+". sayfa · İmza kutusunu konumlandır";
+}
+function markSelectionWithoutRerender(){
+ for(const root of pageViews.values()){
+  root.markers.querySelectorAll("[data-drag-place]").forEach(el=>{
+   el.classList.toggle("selected",Number(el.dataset.dragWho)===selectedPlacement?.who&&Number(el.dataset.dragPage)===selectedPlacement?.page);
+   el.classList.toggle("active",Number(el.dataset.dragWho)===Number($("whoPlace").value));
+  });
+ }
+ updatePlacementControls();
+}
+function nudgeSelected(dx,dy,multiplier=1){
+ if(documentCreated||creatingDoc)return;
+ const selected=selectedLocation();if(!selected)return;
+ const step=(Number($("nudgePrecision").value)||0.005)*multiplier;
+ selected.loc.x=clampPlace(selected.loc.x+dx*step,.73);
+ selected.loc.y=clampPlace(selected.loc.y+dy*step,.91);
+ renderMarkers();
+ tell("createStatus",selected.page+". sayfadaki "+($("name"+(selected.who+1)).value||"imza")+" kutusunun konumu ayarlandı.");
+}
+$("placementAdjust").onclick=event=>{
+ const button=event.target.closest("[data-move-x][data-move-y]");
+ if(!button)return;
+ nudgeSelected(Number(button.dataset.moveX),Number(button.dataset.moveY));
+};
+$("pdfPages").addEventListener("keydown",event=>{
+ const mark=event.target.closest("[data-drag-place]");
+ if(!mark||documentCreated)return;
+ const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+ if(!dirs[event.key])return;
+ event.preventDefault();
+ selectedPlacement={who:Number(mark.dataset.dragWho),page:Number(mark.dataset.dragPage)};
+ $("whoPlace").value=String(selectedPlacement.who);
+ nudgeSelected(...dirs[event.key],event.shiftKey?5:1);
+});
+$("pdfPages").addEventListener("pointerdown",event=>{
+ const mark=event.target.closest("[data-drag-place]");
+ if(!mark||documentCreated||creatingDoc)return;
+ const who=Number(mark.dataset.dragWho),page=Number(mark.dataset.dragPage);
+ const loc=locations[who]?.find(p=>p.page===page);
+ const paper=mark.closest("[data-paper-page]");
+ if(!loc||!paper)return;
+ event.preventDefault();event.stopPropagation();
+ placementArmed=false;
+ selectedPlacement={who,page};
+ $("whoPlace").value=String(who);
+ const rect=paper.getBoundingClientRect();
+ dragPlacement={
+  id:event.pointerId,mark,who,page,loc,
+  startX:event.clientX,startY:event.clientY,
+  initialX:loc.x,initialY:loc.y,
+  width:rect.width,height:rect.height,moved:false
+ };
+ try{mark.setPointerCapture(event.pointerId)}catch{}
+ markSelectionWithoutRerender();
+});
+$("pdfPages").addEventListener("pointermove",event=>{
+ const d=dragPlacement;if(!d||event.pointerId!==d.id)return;
+ event.preventDefault();
+ const dx=event.clientX-d.startX,dy=event.clientY-d.startY;
+ if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;
+ d.loc.x=clampPlace(d.initialX+dx/d.width,.73);
+ d.loc.y=clampPlace(d.initialY+dy/d.height,.91);
+ d.mark.style.left=(d.loc.x*100)+"%";
+ d.mark.style.top=(d.loc.y*100)+"%";
+});
+function finishPlacementDrag(event){
+ const d=dragPlacement;
+ if(!d||event.pointerId!==d.id)return;
+ event.preventDefault();event.stopPropagation();
+ ignorePaperClickUntil=Date.now()+350;
+ try{if(d.mark.hasPointerCapture(event.pointerId))d.mark.releasePointerCapture(event.pointerId)}catch{}
+ dragPlacement=null;
+ renderMarkers();
+ if(d.moved)tell("createStatus",d.page+". sayfadaki imza kutusu taşındı. İnce ayar için ok düğmelerini kullanabilirsin.");
+ else tell("createStatus","Kutu seçildi. Parmağınla sürükleyebilir veya yön düğmelerini kullanabilirsin.");
+}
+$("pdfPages").addEventListener("pointerup",finishPlacementDrag);
+$("pdfPages").addEventListener("pointercancel",finishPlacementDrag);
+
 $("addPlacement").onclick=()=>{
  if(!selectedFile||documentCreated)return;
  placementArmed=!placementArmed;
@@ -256,10 +375,12 @@ $("pdfPages").onclick=event=>{
   if(documentCreated){tell("createStatus","Bu belge için bağlantılar oluşturuldu. Alanları değiştirmek için yeniden PDF yükleyerek yeni bağlantılar oluştur.",true);return}
   const page=Number(remove.dataset.removePlace),who=Number(remove.dataset.signerIndex);
   locations[who]=locations[who].filter(position=>position.page!==page);
+  if(selectedPlacement?.who===who&&selectedPlacement?.page===page)selectedPlacement=null;
   placementArmed=false;renderMarkers();
   tell("createStatus",($("name"+(who+1)).value.trim()||"İmzacı")+" için "+page+". sayfadaki imza kutusu silindi.");
   return;
  }
+ if(event.target.closest("[data-drag-place]")||Date.now()<ignorePaperClickUntil)return;
  const paper=event.target.closest("[data-paper-page]");
  if(!paper||!pdfDoc||documentCreated)return;
  if(!placementArmed){
@@ -275,13 +396,24 @@ $("pdfPages").onclick=event=>{
  else if(positions.length<30){positions.push({page,x,y});positions.sort((a,b)=>a.page-b.page)}
  else {tell("createStatus","Bir imzacının en fazla 30 sayfalık imzası olabilir.",true);return}
  placementArmed=false;
+ selectedPlacement={who,page};
  renderMarkers();
  tell("createStatus",($("name"+(who+1)).value.trim()||"İmzacı")+" için "+page+". sayfaya alan "+(existing?"taşındı.":"eklendi.")+" Başka sayfa gerekiyorsa tekrar '+ İmza Kutusu Ekle'ye bas.");
 };
-$("whoPlace").onchange=()=>{placementArmed=false;renderMarkers()};
+$("whoPlace").onchange=()=>{
+ placementArmed=false;
+ const who=Number($("whoPlace").value);
+ const loc=locations[who]?.[0];
+ selectedPlacement=loc?{who,page:loc.page}:null;
+ renderMarkers();
+};
 $("jumpPlace").onclick=()=>{
  const loc=locations[Number($("whoPlace").value)]?.[0];
- if(loc)pageViews.get(loc.page)?.sheet.scrollIntoView({behavior:"smooth",block:"center"});
+ if(loc){
+  selectedPlacement={who:Number($("whoPlace").value),page:loc.page};
+  renderMarkers();
+  pageViews.get(loc.page)?.sheet.scrollIntoView({behavior:"smooth",block:"center"});
+ }
  else tell("createStatus","Bu imzacı için henüz imza alanı seçilmedi. Sayfaya ilerleyip '+ İmza Kutusu Ekle'ye bas.");
 };
 $("rotateAll180").onclick=async()=>{
