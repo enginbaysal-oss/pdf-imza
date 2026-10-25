@@ -32,7 +32,8 @@
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
 <p class="muted">Her imzacı için <b>her sayfaya ayrı imza alanı</b> yerleştiriyoruz. Başlangıçta üç kişinin tüm sayfalarda ayrı alanı hazırlanır. İmzacı seçip sayfa üzerinde dokunarak o sayfadaki konumunu değiştirebilirsin.</p>
 <div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
-<p class="muted">Tüm sayfalar alt alta görünür. Her sayfadaki üç imza kutusunun yerini kontrol et. Her imzacı bağlantısından sayfaları sırayla ayrı ayrı imzalayacak. Sayfa ters görünüyorsa <b>90° Döndür</b> kullan.</p>
+<p class="muted">Tüm sayfalar alt alta görünür. <b>Üç sayfalık bir PDF'de her imzacı için 3 imza alanı</b> otomatik hazırlanır; toplam 9 imza alınır. Kutuların yerini kontrol et, gerekirse ilgili sayfaya dokunarak değiştir. İmzacılar her sayfayı ayrı ayrı imzalayacak. Sayfa ters görünüyorsa <b>90° Döndür</b> kullan.</p>
+<p id="placementSummary" class="notice" role="status" aria-live="polite"></p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
 </div>
 <div class="row" style="margin-top:15px"><button id="createBtn" disabled>3 İmza Bağlantısı Oluştur</button></div>
@@ -183,6 +184,13 @@ async function renderSheet(n){
  renderMarkers();
 }
 function renderMarkers(){
+ if(pdfDoc&&locations.length===3){
+  const summary=locations.map((points,i)=>{
+   const pages=points.map(p=>p.page).sort((a,b)=>a-b).join(", ");
+   return ($("name"+(i+1)).value.trim()||((i+1)+". imzacı"))+": "+(pages||"—")+". sayfa ("+points.length+" imza)";
+  });
+  $("placementSummary").textContent="İmza sayfaları: "+summary.join(" | ")+" · Toplam "+locations.reduce((sum,points)=>sum+points.length,0)+" ayrı imza alanı.";
+ }
  for(const [n,item] of pageViews){
   item.markers.innerHTML=locations.flatMap((positions,i)=>positions.filter(loc=>loc.page===n).map(loc=>
    '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
@@ -198,7 +206,7 @@ async function rotateSheet(n,delta){
  item.paper.style.aspectRatio=size.width+"/"+size.height;
  item.paper.querySelector(".pdfLoading").hidden=false;
  const affected=locations.some(positions=>positions.some(l=>l.page===n));
- if(affected.length)tell("createStatus","Sayfa "+n+" döndürüldü. Bu sayfadaki imza kutularının yerini kontrol edip gerekirse yeniden seç.");
+ if(affected)tell("createStatus","Sayfa "+n+" döndürüldü. Bu sayfadaki imza kutularının yerini kontrol edip gerekirse yeniden seç.");
  await renderSheet(n);
 }
 $("pdfFile").onchange=async()=>{
@@ -216,7 +224,7 @@ $("pdfFile").onchange=async()=>{
   if(!$("docTitle").value.trim())$("docTitle").value=file.name.replace(/\.pdf$/i,"");
   await setupAllPages();
   $("createBtn").disabled=false;
-  tell("createStatus",pageCount+" sayfa alt alta açıldı. İmza yerlerini kontrol edip bağlantıları oluşturabilirsin.");
+  tell("createStatus",pageCount+" sayfa açıldı. Toplam "+locations.reduce((sum,points)=>sum+points.length,0)+" imza kutusu yerleştirildi. Tüm sayfaları kontrol edip bağlantıları oluşturabilirsin.");
  }catch(e){
   selectedFile=null;$("createBtn").disabled=true;
   tell("createStatus","PDF görüntülenemedi: "+e.message,true);
@@ -302,7 +310,7 @@ async function listDocs(){
   $("documentsList").innerHTML=data.documents.length?data.documents.map(d=>{
    const signed=(d.signers||[]).filter(s=>s.status==="signed").length;
    return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<3?"wait":"")+'">'+signed+'/3 imza · '+(d.status==="complete"?"Tamamlandı":signed===3?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
-    (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b></div>').join("")+
+    (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b> · '+xss(s.page_count||1)+' sayfa</div>').join("")+
     '<div class="row" style="margin-top:12px"><button class="secondary" data-admin-open="'+xss(d.id)+'" data-kind="original">Orijinal PDF</button>'+
     (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===3?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
     '</div></div>';
