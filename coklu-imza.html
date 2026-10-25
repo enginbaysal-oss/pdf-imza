@@ -42,7 +42,7 @@
 </div>
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
-<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada istediğin yere bir kez dokun. Kutuyu sonradan <b>fareyle veya parmağınla sürükleyebilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
+<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada kutunun <b>ortasının olmasını istediğin yere</b> bir kez dokun. Kutuyu sonradan <b>fareyle veya parmağınla sürükleyebilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
 <div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"><option value="0">1. imzacı</option><option value="1">2. imzacı</option><option value="2">3. imzacı</option></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
 <div id="placementAdjust" class="placementAdjust" hidden>
 <strong id="selectedPlaceName">Seçili imza kutusu</strong>
@@ -388,8 +388,9 @@ $("pdfPages").onclick=event=>{
   return;
  }
  const rect=paper.getBoundingClientRect();
- const x=Math.max(0,Math.min(.73,(event.clientX-rect.left)/rect.width));
- const y=Math.max(0,Math.min(.91,(event.clientY-rect.top)/rect.height));
+ // Dokunulan nokta kutunun ortası olsun; yerleştirme başlangıcı şaşmasın.
+ const x=clampPlace((event.clientX-rect.left)/rect.width-0.135,.73);
+ const y=clampPlace((event.clientY-rect.top)/rect.height-0.045,.91);
  const page=Number(paper.dataset.paperPage),who=Number($("whoPlace").value);
  const positions=locations[who],existing=positions.find(p=>p.page===page);
  if(existing){existing.x=x;existing.y=y}
