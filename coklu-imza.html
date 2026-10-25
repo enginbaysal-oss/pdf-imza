@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Çoklu İmza Topla | PDF İmzala</title>
 <style>
-:root{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#17344a;background:#f0f5f8}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(112deg,#16456e,#0d8990);color:#fff;padding:17px 20px}header nav{display:flex;align-items:center;justify-content:space-between;max-width:1050px;margin:auto;gap:12px}header h1{font-size:23px;margin:0;font-weight:850}header a{color:white;text-decoration:none;font-size:13px;font-weight:650}main{max-width:1050px;margin:16px auto;padding:0 14px 60px}.panel{background:white;padding:19px;border-radius:16px;margin:14px 0;box-shadow:0 3px 18px #23415714}h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px}p{margin:6px 0 12px}label{display:block;margin-top:10px;margin-bottom:5px;font-weight:700;font-size:13px}input,select{width:100%;background:#fff;color:#172f44;border:1px solid #bdd2df;border-radius:10px;padding:12px;font:inherit}input[type=file]{padding:9px}button,.btn{background:#158f72;color:white;border:0;padding:11px 16px;border-radius:10px;font:inherit;font-weight:760;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;gap:5px}button.secondary,.btn.secondary{background:#e4eef3;color:#18516b}button.danger{background:#f2e4e2;color:#903b3b}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:0 0 auto}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.muted{font-size:13px;color:#5e7180}.notice{padding:12px;background:#edf8f3;border:1px solid #cbe8da;border-radius:10px;font-size:13px}.warn{background:#fff5e8;border-color:#f4d2ac}.status{min-height:18px;color:#176e57;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#b43f37!important}.card{border:1px solid #dce9ee;border-radius:12px;padding:12px;margin:10px 0;background:#fafcfe}.card strong{display:block}.chip{display:inline-block;padding:4px 8px;background:#e1f2e9;color:#26794b;border-radius:12px;font-size:12px;font-weight:750}.chip.wait{background:#fff2dd;color:#905b1e}#pdfPages{max-width:760px;margin:12px auto;display:flex;flex-direction:column;gap:18px;align-items:stretch;min-width:0}.pdfSheet{padding:10px;background:#e9f0f4;border:1px solid #d1dfe7;border-radius:13px;min-width:0}.pdfPageToolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 9px;line-height:1.4;font-size:13px;color:#37566c;font-weight:700}.pdfPageToolbar button{padding:6px 10px;font-size:12px}.pagePlacementControls{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin-top:3px}.pagePlacementControls button{padding:7px 10px;background:#fbe6e3;color:#922f29;border:1px solid #edc6c0;font-weight:750}.pagePlacementControls:empty{display:none}#addPlacement.armed{background:#bd6b0b;color:#fff}.pdfPaper.readyToPlace{outline:3px solid #ef9d23;outline-offset:2px}.pdfPaper{cursor:default}.pdfPaper{position:relative;max-width:100%;width:100%;margin:auto;background:white;line-height:0;cursor:crosshair;box-shadow:0 2px 8px #193f591c;overflow:hidden}.pdfPageCanvas{display:block;width:100%;height:auto}.pdfPageMarkers{position:absolute;inset:0;pointer-events:none}.marker{position:absolute;border:2px dashed #1f90c4;background:#b8e3ee77;border-radius:4px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;line-height:1.2;color:#124963;overflow:hidden}.marker.active{border:3px solid #fa9119;background:#ffe5ab88;color:#683507}.pdfLoading{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font-size:12px;color:#5d7c8d;pointer-events:none;line-height:1.4}.pdfPageCanvas:not([width]){min-height:200px}.signArea{border:2px dashed #a4bfcc;border-radius:13px;background:#fff;max-width:800px;overflow:hidden}#signatureCanvas{width:100%;height:auto;touch-action:none;display:block;background:#fff;cursor:crosshair;aspect-ratio:3.33}iframe.pdfView{width:100%;height:440px;border:1px solid #d8e0e6;border-radius:12px;background:#eee}.personLine{border-top:1px solid #e5edf1;padding:8px 0}.personLine:first-child{border:0}.break{overflow-wrap:anywhere;word-break:break-word}a{color:#14689a}.miniNote{font-size:12px;color:#687986}section[hidden],div[hidden]{display:none!important}@media(max-width:650px){.grid,.grid.two{grid-template-columns:1fr}.panel{padding:13px}header h1{font-size:19px}iframe.pdfView{height:380px}button{padding:11px}.row>*{max-width:100%}}
+:root{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#17344a;background:#f0f5f8}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(112deg,#16456e,#0d8990);color:#fff;padding:17px 20px}header nav{display:flex;align-items:center;justify-content:space-between;max-width:1050px;margin:auto;gap:12px}header h1{font-size:23px;margin:0;font-weight:850}header a{color:white;text-decoration:none;font-size:13px;font-weight:650}main{max-width:1050px;margin:16px auto;padding:0 14px 60px}.panel{background:white;padding:19px;border-radius:16px;margin:14px 0;box-shadow:0 3px 18px #23415714}h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:0 0 8px}p{margin:6px 0 12px}label{display:block;margin-top:10px;margin-bottom:5px;font-weight:700;font-size:13px}input,select{width:100%;background:#fff;color:#172f44;border:1px solid #bdd2df;border-radius:10px;padding:12px;font:inherit}input[type=file]{padding:9px}button,.btn{background:#158f72;color:white;border:0;padding:11px 16px;border-radius:10px;font:inherit;font-weight:760;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;gap:5px}button.secondary,.btn.secondary{background:#e4eef3;color:#18516b}button.danger{background:#f2e4e2;color:#903b3b}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:0 0 auto}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.muted{font-size:13px;color:#5e7180}.notice{padding:12px;background:#edf8f3;border:1px solid #cbe8da;border-radius:10px;font-size:13px}.warn{background:#fff5e8;border-color:#f4d2ac}.status{min-height:18px;color:#176e57;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#b43f37!important}.card{border:1px solid #dce9ee;border-radius:12px;padding:12px;margin:10px 0;background:#fafcfe}.card strong{display:block}.chip{display:inline-block;padding:4px 8px;background:#e1f2e9;color:#26794b;border-radius:12px;font-size:12px;font-weight:750}.chip.wait{background:#fff2dd;color:#905b1e}#pdfPages{max-width:760px;margin:12px auto;display:flex;flex-direction:column;gap:18px;align-items:stretch;min-width:0}.pdfSheet{padding:10px;background:#e9f0f4;border:1px solid #d1dfe7;border-radius:13px;min-width:0}.pdfPageToolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 9px;line-height:1.4;font-size:13px;color:#37566c;font-weight:700}.pdfPageToolbar button{padding:6px 10px;font-size:12px}.pagePlacementControls{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin-top:3px}.pagePlacementControls button{padding:7px 10px;background:#fbe6e3;color:#922f29;border:1px solid #edc6c0;font-weight:750}.pagePlacementControls:empty{display:none}#addPlacement.armed{background:#bd6b0b;color:#fff}.pdfPaper.readyToPlace{outline:3px solid #ef9d23;outline-offset:2px}.pdfPaper{cursor:default}.pdfPaper{position:relative;max-width:100%;width:100%;margin:auto;background:white;line-height:0;cursor:crosshair;box-shadow:0 2px 8px #193f591c;overflow:hidden}.pdfPageCanvas{display:block;width:100%;height:auto}.pdfPageMarkers{position:absolute;inset:0;pointer-events:none}.marker{position:absolute;border:2px dashed #1f90c4;background:#b8e3ee77;border-radius:4px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;line-height:1.2;color:#124963;overflow:hidden}.marker.active{border:3px solid #fa9119;background:#ffe5ab88;color:#683507}.pdfLoading{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font-size:12px;color:#5d7c8d;pointer-events:none;line-height:1.4}.pdfPageCanvas:not([width]){min-height:200px}.signReview{margin-top:20px;border:2px solid #c5e3da;background:#f8fcfa;border-radius:15px;padding:14px}.signReview h3{color:#1a6259}.signReviewPage{max-width:700px;margin:15px auto 20px;padding:10px;border:1px solid #d6e3e7;background:#e9f0f3;border-radius:12px}.signReviewPage strong{display:block;margin-bottom:8px;font-size:13px;color:#365b6c}.signReviewPage canvas{display:block;max-width:100%;height:auto;margin:auto;background:white;box-shadow:0 3px 9px #1a354021}.signConsent{display:flex;align-items:flex-start;gap:10px;background:#eaf7ef;border:1px solid #c7e5d0;padding:12px;border-radius:10px;font-size:13px;margin:12px 0;cursor:pointer}.signConsent input{margin:4px 0 0;width:20px;height:20px;flex:none}.signArea{border:2px dashed #a4bfcc;border-radius:13px;background:#fff;max-width:800px;overflow:hidden}#signatureCanvas{width:100%;height:auto;touch-action:none;display:block;background:#fff;cursor:crosshair;aspect-ratio:3.33}iframe.pdfView{width:100%;height:440px;border:1px solid #d8e0e6;border-radius:12px;background:#eee}.personLine{border-top:1px solid #e5edf1;padding:8px 0}.personLine:first-child{border:0}.break{overflow-wrap:anywhere;word-break:break-word}a{color:#14689a}.miniNote{font-size:12px;color:#687986}section[hidden],div[hidden]{display:none!important}@media(max-width:650px){.grid,.grid.two{grid-template-columns:1fr}.panel{padding:13px}header h1{font-size:19px}iframe.pdfView{height:380px}button{padding:11px}.row>*{max-width:100%}}
 
 .placementAdjust{background:#f1f8ff;border:1px solid #bed8ed;border-radius:12px;padding:12px;margin:12px 0}
 .placementAdjust strong{display:block;font-size:14px;margin-bottom:6px;color:#164d6a}
@@ -88,9 +88,24 @@
 <button class="secondary" id="clearSignature">İmzayı Temizle</button>
 <button class="secondary" id="prevSignature" hidden>‹ Önceki İmza</button>
 <button id="nextSignature" hidden>Bu Sayfayı Kaydet ve Sonraki Sayfa ›</button>
-<button id="submitSignature">Tüm İmzaları Gönder</button>
+<button id="submitSignature">İmzalarımı Önizle →</button>
 </div>
-<p class="muted">Her sayfanın imzasını ayrı ayrı çiz. Son sayfadan sonra hepsini birlikte gönder.</p>
+<p class="muted">Her sayfanın imzasını ayrı ayrı çiz. Son sayfadan sonra önizlemede yerlerini kontrol ederek gönder.</p>
+</div>
+<div id="signPreview" class="signReview" hidden>
+<h3>🔍 İmzalarını Göndermeden Önce Kontrol Et</h3>
+<p class="notice">Aşağıda, <b>senin imzalarının PDF üzerinde görüneceği yerler</b> var. Diğer kişilerin imzaları bu önizlemede gösterilmeyebilir. Tüm imzalar tamamlandığında tek PDF'yi belgeyi oluşturan yönetici görecek.</p>
+<p id="signPreviewProgress" class="muted"></p>
+<div id="signPreviewPages"></div>
+<label class="signConsent" for="signPreviewConsent">
+<input type="checkbox" id="signPreviewConsent">
+<span><b>Belgemi ve imzalarımın konumlarını inceledim.</b> Gösterilen imzaların bu belgeye uygulanarak yöneticiye iletilmesini onaylıyorum.</span>
+</label>
+<div class="row">
+<button id="backToSignature" class="secondary" type="button">← İmzalarımı Düzenle</button>
+<button id="confirmSignature" type="button" disabled>✓ Onaylıyorum, İmzalarımı Gönder</button>
+</div>
+<p class="muted">Bu onaydan önce sunucuya hiçbir imza gönderilmez.</p>
 </div>
 <p id="signStatus" class="status" role="status"></p>
 </section>
@@ -99,7 +114,7 @@
 <script type="module">
 const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
+let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPlacements=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
 function initialLocations(){
  // Imza kutulari otomatik eklenmez; yonetici gereken sayfalari secer.
@@ -508,8 +523,12 @@ async function signerView(token){
    $("signForm").hidden=true;tell("signStatus","✓ İmzaların kaydedildi. Son belge yalnızca yönetici ekranında olacak.");return;
   }
   signPages=Array.isArray(data.pages)&&data.pages.length?data.pages.map(Number).sort((a,b)=>a-b):[Number(data.page||1)];
+  signPlacements=Array.isArray(data.placements)&&data.placements.length?
+    data.placements.map(p=>({page:Number(p.page),x:Number(p.x),y:Number(p.y)})):
+    [{page:Number(data.page||1),x:Number(data.x||0.06),y:Number(data.y||0.85)}];
   signedPagePng=new Array(signPages.length).fill(null);
   signIndex=0;
+  $("signPreview").hidden=true;$("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
   $("originalPdfLink").href=data.originalUrl;
   $("signForm").hidden=false;
   showSignaturePage();
@@ -587,18 +606,76 @@ pad.addEventListener("pointerdown",e=>{e.preventDefault();pad.setPointerCapture(
 pad.addEventListener("pointermove",e=>{if(!drawing)return;e.preventDefault();const p=coords(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
 for(const name of ["pointerup","pointercancel","lostpointercapture"])pad.addEventListener(name,()=>{drawing=false});
 $("clearSignature").onclick=()=>{ctx.clearRect(0,0,pad.width,pad.height);ink=false;tell("signStatus","İmza temizlendi.")};
-$("submitSignature").onclick=async()=>{
+
+async function buildSignedPagePreview(){
  if(!saveSignatureStep())return;
- if(signedPagePng.some(x=>!x)){tell("signStatus","Eksik sayfa imzaları var. Önce diğer sayfaları imzala.",true);return}
- if(!confirm(signPages.length+" sayfadaki ayrı imzalarını göndererek işlemi tamamlamak istiyor musun?"))return;
- const btn=$("submitSignature");btn.disabled=true;tell("signStatus","Sayfa imzaların kaydediliyor...");
+ if(signedPagePng.some(x=>!x)){tell("signStatus","Eksik imza var. Önce tüm sayfaları imzala.",true);return}
+ if(!signPdfDocument){tell("signStatus","PDF henüz önizleme için yüklenemedi. Belgenin yüklenmesini kontrol et ve tekrar dene.",true);return}
+ const btn=$("submitSignature");btn.disabled=true;tell("signStatus","");
+ const preview=$("signPreview"),root=$("signPreviewPages");
+ root.replaceChildren();
+ $("signPreviewProgress").textContent="İmza yerleri hazırlanıyor...";
+ $("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
+ preview.hidden=false;$("signForm").hidden=true;
+ try{
+  const width=Math.max(210,Math.min(670,root.clientWidth-26||600));
+  const dpr=Math.min(window.devicePixelRatio||1,1.6);
+  const positions=signPlacements.filter(p=>signPages.includes(p.page));
+  if(positions.length!==signPages.length)throw Error("İmza konumları alınamadı. Sayfayı yenileyip tekrar dene.");
+  for(let idx=0;idx<signPages.length;idx++){
+   const pageNo=signPages[idx],position=positions.find(p=>p.page===pageNo);
+   if(!position)throw Error("Sayfa "+pageNo+" için imza yeri belirtilmemiş.");
+   const page=await signPdfDocument.getPage(pageNo);
+   const base=page.getViewport({scale:1});
+   const view=page.getViewport({scale:width/base.width*dpr});
+   const wrapper=document.createElement("section");wrapper.className="signReviewPage";
+   const heading=document.createElement("strong");
+   heading.textContent=pageNo+". sayfa · imzanın PDF üzerindeki yeri";
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);
+   canvas.style.width=width+"px";
+   wrapper.append(heading,canvas);root.append(wrapper);
+   await page.render({canvasContext:canvas.getContext("2d"),viewport:view}).promise;
+   const img=new Image();img.src="data:image/png;base64,"+signedPagePng[idx];
+   await img.decode();
+   // Önizleme, yönetici PDF'sindeki normalleştirilmiş kutuyla aynı ölçüleri kullanır.
+   canvas.getContext("2d").drawImage(img,canvas.width*position.x,canvas.height*position.y,canvas.width*.27,canvas.height*.09);
+   $("signPreviewProgress").textContent=(idx+1)+" / "+signPages.length+" sayfanın imzası hazır...";
+  }
+  $("signPreviewProgress").textContent=signPages.length+" sayfadaki imzaların belge üzerindeki yerlerini incele. Uygunsa aşağıdaki kutuyu işaretle ve gönder.";
+  preview.scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(err){
+  preview.hidden=true;$("signForm").hidden=false;
+  root.replaceChildren();
+  tell("signStatus","Önizleme oluşturulamadı: "+err.message+". İmzaların henüz gönderilmedi.",true);
+ }finally{btn.disabled=false}
+}
+$("submitSignature").onclick=()=>void buildSignedPagePreview();
+$("backToSignature").onclick=()=>{
+ $("signPreview").hidden=true;$("signForm").hidden=false;
+ $("signPreviewConsent").checked=false;$("confirmSignature").disabled=true;
+ showSignaturePage();
+ $("signStepTitle").scrollIntoView({behavior:"smooth",block:"start"});
+};
+$("signPreviewConsent").onchange=()=>{$("confirmSignature").disabled=!$("signPreviewConsent").checked};
+$("confirmSignature").onclick=async()=>{
+ if(!$("signPreviewConsent").checked||$("signPreview").hidden){tell("signStatus","Önizlemeyi inceleyip onaylamalısın.",true);return}
+ if(signedPagePng.some(x=>!x)||signedPagePng.length!==signPages.length){tell("signStatus","Eksik sayfa imzası var.",true);return}
+ const btn=$("confirmSignature");btn.disabled=true;$("backToSignature").disabled=true;
+ tell("signStatus","Onayladığın imzalar güvenli biçimde gönderiliyor...");
  try{
   const signatures=signPages.map((page,i)=>({page,png:signedPagePng[i]}));
-  const r=await call("sign",{token:signToken,signatures});
-  $("signForm").hidden=true;$("signProgress").textContent="İşlemin tamamlandı: "+signatures.length+" ayrı sayfa imzalandı.";
+  const result=await call("sign",{token:signToken,signatures});
+  $("signPreview").hidden=true;$("signForm").hidden=true;
+  $("signProgress").textContent="İşlemin tamamlandı: "+signatures.length+" sayfanın imzaları kaydedildi.";
   signedPagePng=[];
-  tell("signStatus",r.finalError?"✓ İmzaların alındı. Yönetici PDF birleştirmeyi yeniden deneyebilir.":"✓ Tüm sayfa imzaların başarıyla alındı.");
- }catch(e){tell("signStatus",e.message,true)}finally{btn.disabled=false}
+  tell("signStatus",result.finalError?"✓ İmzaların alındı. Yönetici PDF birleştirmeyi yeniden deneyebilir.":"✓ Önizleyip onayladığın tüm imzaların başarıyla alındı.");
+ }catch(err){
+  tell("signStatus","Gönderilemedi: "+err.message+". Önizleme korunuyor; tekrar deneyebilirsin.",true);
+ }finally{
+  $("backToSignature").disabled=false;
+  btn.disabled=!$("signPreviewConsent").checked;
+ }
 };
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
 if(sign)void signerView(sign);
