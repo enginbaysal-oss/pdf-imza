@@ -15,7 +15,7 @@
 .pdfPageMarkers .marker.selected{border-style:solid;box-shadow:0 0 0 3px #ffba4d,0 3px 10px #263d5340;z-index:3}
 .pdfPageMarkers .marker:active{cursor:grabbing}
 .pdfPageMarkers .marker:focus-visible{outline:3px solid #197ad5;outline-offset:2px}
-.pdfPaper.readyToPlace .marker{cursor:grab}.signerField{border:1px solid #dde8ef;border-radius:11px;padding:9px 11px;background:#fafdff}.signerField .row{justify-content:space-between;margin:0}.signerField .removeSigner{font-size:11px;padding:6px 8px;color:#995040;background:#fbeae6}
+.pdfPaper.readyToPlace .marker{cursor:grab}.pdfPageMarkers .marker .resizeHandle{position:absolute;right:0;bottom:0;width:19px;height:19px;background:#126ea5;border-radius:5px 0 0 0;cursor:nwse-resize;pointer-events:auto;display:block}.pdfPageMarkers .marker .resizeHandle::after{content:"◢";font-size:13px;position:absolute;right:2px;bottom:1px;color:#fff;line-height:1}#boxWidth,#boxHeight{padding:0;accent-color:#167aa3;cursor:pointer}.signerField{border:1px solid #dde8ef;border-radius:11px;padding:9px 11px;background:#fafdff}.signerField .row{justify-content:space-between;margin:0}.signerField .removeSigner{font-size:11px;padding:6px 8px;color:#995040;background:#fbeae6}
 @media(max-width:650px){.placementAdjust button{min-width:64px;padding:10px}.pdfPageMarkers .marker{font-size:10px}}
 </style>
 </head>
@@ -39,11 +39,15 @@
 <div class="row" style="margin:10px 0 15px"><button id="addSigner" class="secondary" type="button">+ İmzacı Ekle</button><span class="muted" id="signerCountHint"></span></div>
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
-<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada kutunun <b>ortasının olmasını istediğin yere</b> bir kez dokun. Kutuyu sonradan <b>fareyle veya parmağınla sürükleyebilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
+<p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada kutunun <b>ortasının olmasını istediğin yere</b> bir kez dokun. Kutuyu sonradan <b>taşıyıp boyutlandırabilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
 <div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
 <div id="placementAdjust" class="placementAdjust" hidden>
 <strong id="selectedPlaceName">Seçili imza kutusu</strong>
-<p class="muted">Kutuyu sürükle veya aşağıdaki oklarla yerini hassas ayarla. Klavyenin yön tuşları da çalışır.</p>
+<p class="muted">Kutuyu tutup taşı veya sağ alt köşesindeki mavi tutamaçla boyutlandır. Genişliği ve yüksekliği aşağıdan da ayarlayabilirsin.</p>
+<div class="grid two" style="margin:9px 0 12px">
+<div><label for="boxWidth">Genişlik: <span id="boxWidthValue">17%</span></label><input id="boxWidth" type="range" min="8" max="60" step="1" value="17"></div>
+<div><label for="boxHeight">Yükseklik: <span id="boxHeightValue">6%</span></label><input id="boxHeight" type="range" min="3" max="22" step="1" value="6"></div>
+</div>
 <div class="row">
 <button type="button" data-move-x="-1" data-move-y="0" aria-label="İmza kutusunu sola kaydır">← Sola</button>
 <button type="button" data-move-x="0" data-move-y="-1" aria-label="İmza kutusunu yukarı kaydır">↑ Yukarı</button>
@@ -276,7 +280,7 @@ function renderMarkers(){
  for(const [n,item] of pageViews){
   item.paper.classList.toggle("readyToPlace",placementArmed);
   item.markers.innerHTML=locations.flatMap((positions,i)=>positions.filter(loc=>loc.page===n).map(loc=>
-   '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+(selectedPlacement?.who===i&&selectedPlacement?.page===n?" selected":"")+'" data-drag-place="1" data-drag-page="'+n+'" data-drag-who="'+i+'" tabindex="0" role="button" aria-label="'+xss(($("name"+(i+1)).value||((i+1)+". imzacı"))+" imzası, "+n+". sayfa; taşımak için sürükleyin veya yön tuşlarını kullanın")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:27%;height:9%">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+'</div>')).join("");
+   '<div class="marker '+(i===Number($("whoPlace").value)?"active":"")+(selectedPlacement?.who===i&&selectedPlacement?.page===n?" selected":"")+'" data-drag-place="1" data-drag-page="'+n+'" data-drag-who="'+i+'" tabindex="0" role="button" aria-label="'+xss(($("name"+(i+1)).value||((i+1)+". imzacı"))+" imzası, "+n+". sayfa; taşımak için sürükleyin veya yön tuşlarını kullanın")+'" style="left:'+(loc.x*100)+'%;top:'+(loc.y*100)+'%;width:'+((loc.w??0.27)*100)+'%;height:'+((loc.h??0.09)*100)+'%">'+xss(signerNames[i]||((i+1)+". imzacı"))+'<span class="resizeHandle" data-resize-place="1" aria-hidden="true"></span></div>')).join("");
   const removals=item.sheet.querySelector("[data-page-placements]");
   removals.innerHTML=locations.flatMap((points,i)=>points.some(p=>p.page===n)?[
    '<button type="button" '+(documentCreated?'disabled ':'')+'data-remove-place="'+n+'" data-signer-index="'+i+'" title="Bu sayfadaki imza kutusunu kaldır">'+xss($("name"+(i+1)).value||((i+1)+". imzacı"))+' · ✕ Sil</button>'
@@ -298,7 +302,11 @@ function updatePlacementControls(){
  const selected=selectedLocation();
  $("placementAdjust").hidden=!selected||documentCreated;
  if(!selected)return;
- $("selectedPlaceName").textContent="✥ "+($("name"+(selected.who+1)).value.trim()||((selected.who+1)+". imzacı"))+" · "+selected.page+". sayfa · İmza kutusunu konumlandır";
+ $("selectedPlaceName").textContent="✥ "+(signerNames[selected.who]?.trim()||((selected.who+1)+". imzacı"))+" · "+selected.page+". sayfa · İmza kutusunu ayarla";
+ $("boxWidth").value=Math.round((selected.loc.w??0.27)*100);
+ $("boxHeight").value=Math.round((selected.loc.h??0.09)*100);
+ $("boxWidthValue").textContent=$("boxWidth").value+"%";
+ $("boxHeightValue").textContent=$("boxHeight").value+"%";
 }
 function markSelectionWithoutRerender(){
  for(const root of pageViews.values()){
@@ -313,10 +321,19 @@ function nudgeSelected(dx,dy,multiplier=1){
  if(documentCreated||creatingDoc)return;
  const selected=selectedLocation();if(!selected)return;
  const step=(Number($("nudgePrecision").value)||0.005)*multiplier;
- selected.loc.x=clampPlace(selected.loc.x+dx*step,.73);
- selected.loc.y=clampPlace(selected.loc.y+dy*step,.91);
+ selected.loc.x=clampPlace(selected.loc.x+dx*step,1-(selected.loc.w??0.27));
+ selected.loc.y=clampPlace(selected.loc.y+dy*step,1-(selected.loc.h??0.09));
  renderMarkers();
  tell("createStatus",selected.page+". sayfadaki "+($("name"+(selected.who+1)).value||"imza")+" kutusunun konumu ayarlandı.");
+}
+for(const [field,prop,min,max] of [["boxWidth","w",.08,.60],["boxHeight","h",.025,.22]]){
+ $(field).addEventListener("input",()=>{
+  const selected=selectedLocation();if(!selected||documentCreated)return;
+  selected.loc[prop]=Math.max(min,Math.min(max,Number($(field).value)/100));
+  selected.loc.x=Math.min(selected.loc.x,1-(selected.loc.w??0.27));
+  selected.loc.y=Math.min(selected.loc.y,1-(selected.loc.h??0.09));
+  renderMarkers();
+ });
 }
 $("placementAdjust").onclick=event=>{
  const button=event.target.closest("[data-move-x][data-move-y]");
@@ -348,7 +365,7 @@ $("pdfPages").addEventListener("pointerdown",event=>{
  dragPlacement={
   id:event.pointerId,mark,who,page,loc,
   startX:event.clientX,startY:event.clientY,
-  initialX:loc.x,initialY:loc.y,
+  initialX:loc.x,initialY:loc.y,initialW:loc.w??0.27,initialH:loc.h??0.09,mode:event.target.closest("[data-resize-place]")?"resize":"move",
   width:rect.width,height:rect.height,moved:false
  };
  try{mark.setPointerCapture(event.pointerId)}catch{}
@@ -359,10 +376,15 @@ $("pdfPages").addEventListener("pointermove",event=>{
  event.preventDefault();
  const dx=event.clientX-d.startX,dy=event.clientY-d.startY;
  if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;
- d.loc.x=clampPlace(d.initialX+dx/d.width,.73);
- d.loc.y=clampPlace(d.initialY+dy/d.height,.91);
- d.mark.style.left=(d.loc.x*100)+"%";
- d.mark.style.top=(d.loc.y*100)+"%";
+ if(d.mode==="resize"){
+  d.loc.w=Math.max(.08,clampPlace(d.initialW+dx/d.width,Math.min(.60,1-d.loc.x)));
+  d.loc.h=Math.max(.025,clampPlace(d.initialH+dy/d.height,Math.min(.22,1-d.loc.y)));
+  d.mark.style.width=(d.loc.w*100)+"%";d.mark.style.height=(d.loc.h*100)+"%";
+ }else{
+  d.loc.x=clampPlace(d.initialX+dx/d.width,1-(d.loc.w??.27));
+  d.loc.y=clampPlace(d.initialY+dy/d.height,1-(d.loc.h??.09));
+  d.mark.style.left=(d.loc.x*100)+"%";d.mark.style.top=(d.loc.y*100)+"%";
+ }
 });
 function finishPlacementDrag(event){
  const d=dragPlacement;
@@ -372,7 +394,7 @@ function finishPlacementDrag(event){
  try{if(d.mark.hasPointerCapture(event.pointerId))d.mark.releasePointerCapture(event.pointerId)}catch{}
  dragPlacement=null;
  renderMarkers();
- if(d.moved)tell("createStatus",d.page+". sayfadaki imza kutusu taşındı. İnce ayar için ok düğmelerini kullanabilirsin.");
+ if(d.moved)tell("createStatus",d.page+". sayfadaki imza kutusu "+(d.mode==="resize"?"boyutlandırıldı.":"taşındı."));
  else tell("createStatus","Kutu seçildi. Parmağınla sürükleyebilir veya yön düğmelerini kullanabilirsin.");
 }
 $("pdfPages").addEventListener("pointerup",finishPlacementDrag);
@@ -438,12 +460,12 @@ $("pdfPages").onclick=event=>{
  }
  const rect=paper.getBoundingClientRect();
  // Dokunulan nokta kutunun ortası olsun; yerleştirme başlangıcı şaşmasın.
- const x=clampPlace((event.clientX-rect.left)/rect.width-0.135,.73);
- const y=clampPlace((event.clientY-rect.top)/rect.height-0.045,.91);
+ const x=clampPlace((event.clientX-rect.left)/rect.width-0.085,.83);
+ const y=clampPlace((event.clientY-rect.top)/rect.height-0.03,.94);
  const page=Number(paper.dataset.paperPage),who=Number($("whoPlace").value);
  const positions=locations[who],existing=positions.find(p=>p.page===page);
- if(existing){existing.x=x;existing.y=y}
- else if(positions.length<30){positions.push({page,x,y});positions.sort((a,b)=>a.page-b.page)}
+ if(existing){existing.x=clampPlace(x,1-(existing.w??0.17));existing.y=clampPlace(y,1-(existing.h??0.06))}
+ else if(positions.length<30){positions.push({page,x,y,w:0.17,h:0.06});positions.sort((a,b)=>a.page-b.page)}
  else {tell("createStatus","Bir imzacının en fazla 30 sayfalık imzası olabilir.",true);return}
  placementArmed=false;
  selectedPlacement={who,page};
@@ -611,7 +633,7 @@ async function signerView(token){
   }
   signPages=Array.isArray(data.pages)&&data.pages.length?data.pages.map(Number).sort((a,b)=>a-b):[Number(data.page||1)];
   signPlacements=Array.isArray(data.placements)&&data.placements.length?
-    data.placements.map(p=>({page:Number(p.page),x:Number(p.x),y:Number(p.y)})):
+    data.placements.map(p=>({page:Number(p.page),x:Number(p.x),y:Number(p.y),w:Number(p.w??0.27),h:Number(p.h??0.09)})):
     [{page:Number(data.page||1),x:Number(data.x||0.06),y:Number(data.y||0.85)}];
   signedPagePng=new Array(signPages.length).fill(null);
   signIndex=0;
@@ -726,7 +748,7 @@ async function buildSignedPagePreview(){
    const img=new Image();img.src="data:image/png;base64,"+signedPagePng[idx];
    await img.decode();
    // Önizleme, yönetici PDF'sindeki normalleştirilmiş kutuyla aynı ölçüleri kullanır.
-   canvas.getContext("2d").drawImage(img,canvas.width*position.x,canvas.height*position.y,canvas.width*.27,canvas.height*.09);
+   canvas.getContext("2d").drawImage(img,canvas.width*position.x,canvas.height*position.y,canvas.width*(position.w??0.27),canvas.height*(position.h??0.09));
    $("signPreviewProgress").textContent=(idx+1)+" / "+signPages.length+" sayfanın imzası hazır...";
   }
   $("signPreviewProgress").textContent=signPages.length+" sayfadaki imzaların belge üzerindeki yerlerini incele. Uygunsa aşağıdaki kutuyu işaretle ve gönder.";
