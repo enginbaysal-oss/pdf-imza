@@ -56,6 +56,7 @@
 <select id="nudgePrecision" aria-label="İmza kutusu kaydırma miktarı"><option value="0.005">Normal</option><option value="0.001">Hassas</option></select>
 </div>
 </div>
+<p class="muted"><b>Örnek:</b> Üç kişi üç sayfanın tamamını imzalayacaksa her kişi için 1., 2. ve 3. sayfaya birer kutu koy: toplam <b>9 imza kutusu</b>. <b>İmzacılar her sayfayı ayrı ayrı imzalar.</b></p>
 <p class="muted">Sayfalar alt alta görünür. <b>İmza olmayan sayfalara kutu ekleme.</b> Bir kutuyu seçmek için üzerine dokun; taşımak için sürükle. Yanlış kutuyu sayfanın üzerindeki <b>✕ Sil</b> düğmesiyle kaldırabilirsin. Her kişi yalnızca kendisine ayırdığın sayfaları ayrı ayrı imzalar. Ters sayfa için <b>90° Döndür</b> kullan.</p>
 <p id="placementSummary" class="notice" role="status" aria-live="polite"></p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
@@ -468,6 +469,10 @@ $("createBtn").onclick=async()=>{
  if(documentCreated||creatingDoc)return;
  const signers=locations.map((points,i)=>({name:$("name"+(i+1)).value.trim(),placements:points.map(p=>({...p}))}));
  if(signers.some(s=>!s.name||!s.placements.length)){tell("createStatus","Üç kişinin adını ve imza sayfalarını kontrol et.",true);return}
+ if(pageCount===3 && signers.some(s=>s.placements.length<3)){
+  const summary=signers.map((signer,i)=>(i+1)+". imzacı: "+signer.placements.map(p=>p.page).sort((a,b)=>a-b).join(", ")+". sayfa").join("\n");
+  if(!confirm("Bu PDF 3 sayfalık, ancak üç imzacının hepsi her sayfaya yerleştirilmedi.\n\n"+summary+"\n\nÜç kişi üç sayfanın tamamını imzalayacaksa İPTAL'e basıp eksik kutuları ekle. Sadece seçili sayfalar imzalansın istiyorsan TAMAM'a bas."))return;
+ }
  const title=$("docTitle").value.trim();
  if(!title){tell("createStatus","Belge adını yaz.",true);return}
  const btn=$("createBtn");creatingDoc=true;btn.disabled=true;tell("createStatus","PDF yükleniyor ve özel imza bağlantıları hazırlanıyor...");
