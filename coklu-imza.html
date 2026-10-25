@@ -40,7 +40,7 @@
 <div id="positionPanel" hidden>
 <h3 style="margin-top:17px">İmza yerlerini belirle</h3>
 <p class="muted"><b>PDF ilk açıldığında imza kutusu bulunmaz.</b> İmzacıyı seç, <b>+ İmza Kutusu Ekle</b> düğmesine bas ve imzalanacak sayfada kutunun <b>ortasının olmasını istediğin yere</b> bir kez dokun. Kutuyu sonradan <b>taşıyıp boyutlandırabilir</b>, yön düğmeleriyle hassas yerleştirebilirsin. Yalnızca seçtiğin sayfa ve kişiler için kutu oluşur.</p>
-<div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
+<div class="row"><label style="margin:0">İmza alanı:</label><select id="whoPlace" style="max-width:195px"></select><button id="addPlacement" type="button">+ İmza Kutusu Ekle</button><button id="addAllPages" type="button" class="secondary">📄 Tüm Sayfalara İmza Alanlarını Ekle</button><button id="jumpPlace" class="secondary">Seçili İmzaya Git ↓</button><button id="rotateAll180" class="secondary">Tüm PDF'yi 180° Çevir ↻</button></div>
 <div id="placementAdjust" class="placementAdjust" hidden>
 <strong id="selectedPlaceName">Seçili imza kutusu</strong>
 <p class="muted">Kutuyu tutup taşı veya sağ alt köşesindeki mavi tutamaçla boyutlandır. Genişliği ve yüksekliği aşağıdan da ayarlayabilirsin.</p>
@@ -59,6 +59,7 @@
 </div>
 <p class="muted"><b>Örnek:</b> Belgenin 3 sayfasını herkes imzalayacaksa her imzacı için 1., 2. ve 3. sayfalara birer kutu koy. Herkes kendisi için belirlediğin sayfaları ayrı ayrı imzalar.</p>
 <p class="muted">Sayfalar alt alta görünür. <b>İmza olmayan sayfalara kutu ekleme.</b> Bir kutuyu seçmek için üzerine dokun; taşımak için sürükle, sağ alt köşesinden boyutlandır. Yanlış kutuyu sayfanın üzerindeki <b>✕ Sil</b> düğmesiyle kaldırabilirsin. Her kişi yalnızca kendisine ayırdığın sayfaları ayrı ayrı imzalar. Ters sayfa için <b>90° Döndür</b> kullan.</p>
+<p class="muted" id="allPagesHint">Üç sayfalık bir sözleşme için “Tüm Sayfalara İmza Alanlarını Ekle” düğmesi, her imzacının alanını her sayfaya bir defada yerleştirir. Mevcut kutular korunur; sonra yerlerini ayrı ayrı değiştirebilirsin.</p>
 <p id="placementSummary" class="notice" role="status" aria-live="polite"></p>
 <div id="pdfPages" aria-label="Tüm PDF sayfaları"></div>
 </div>
@@ -261,11 +262,18 @@ function renderMarkers(){
  const allAssigned=locations.length===signerNames.length&&locations.length>0&&locations.every(points=>points.length>0);
  $("createBtn").disabled=!selectedFile||!allAssigned||creatingDoc||documentCreated;
  $("addPlacement").disabled=!selectedFile||documentCreated;
+ $("addAllPages").disabled=!selectedFile||documentCreated||creatingDoc||pageCount>30;
+ $("addAllPages").title=pageCount>30?"Bu toplu işlem için en fazla 30 sayfa kullanılabilir.":"Her imzacının imza kutusunu tüm sayfalara yerleştir";
  $("addPlacement").classList.toggle("armed",placementArmed);
  $("addPlacement").setAttribute("aria-pressed",String(placementArmed));
  $("addPlacement").textContent=placementArmed?"İptal · Sayfaya dokunma":"+ İmza Kutusu Ekle";
  if(pdfDoc&&locations.length===signerNames.length){
+  const pageCoverage=Array.from({length:pageCount},(_,i)=>{
+    const n=i+1,done=locations.filter(points=>points.some(p=>p.page===n)).length;
+    return n+". sayfa: "+done+"/"+signerNames.length+" imzacı";
+  });
   $("placementSummary").innerHTML='<b>Yerleştirilen alanlar: '+total+'</b> · '+(allAssigned?'Tüm imzacılar için en az bir alan hazır.':'Her imzacıya en az bir imza alanı seç.')+
+    '<div style="margin-top:7px"><b>Sayfalara göre imza durumu:</b> '+pageCoverage.map(xss).join(" · ")+'</div>'+
     locations.map((points,i)=>{
      const name=signerNames[i]?.trim()||((i+1)+". imzacı");
      const pages=points.map(p=>p.page).sort((a,b)=>a-b).join(", ")||"Henüz seçilmedi";
@@ -400,6 +408,33 @@ $("addPlacement").onclick=()=>{
  placementArmed=!placementArmed;
  renderMarkers();
  tell("createStatus",placementArmed?"Şimdi seçili imzacı için gereken sayfanın üzerine bir kez dokun.":"Yerleştirme iptal edildi.");
+};
+$("addAllPages").onclick=()=>{
+ if(!selectedFile||!pdfDoc||documentCreated||creatingDoc)return;
+ if(pageCount>30){tell("createStatus","Toplu dağıtım en fazla 30 sayfa için kullanılabilir; gerekli sayfalara elle kutu ekleyebilirsin.",true);return}
+ const names=signerNames.map(name=>String(name||"").trim());
+ if(names.some(name=>!name)){tell("createStatus","Önce tüm imzacıların adını yaz.",true);return}
+ let created=0;
+ for(let who=0;who<signerNames.length;who++){
+  const existing=locations[who];
+  // Önceden ayarlanmış kutu varsa onu örnek al; mevcut kutuların yerini değiştirme.
+  const original=existing[0];
+  const width=signerNames.length<=3?.17:Math.max(.08,Math.min(.17,.84/signerNames.length));
+  const defaultX=signerNames.length===1?.40:(.035+who*(.925/signerNames.length));
+  const template=original||{x:Math.min(defaultX,1-width),y:.87,w:width,h:.06};
+  for(let page=1;page<=pageCount;page++){
+   if(existing.some(loc=>loc.page===page))continue;
+   existing.push({page,x:Number(template.x),y:Number(template.y),w:Number(template.w??.17),h:Number(template.h??.06)});
+   created++;
+  }
+  existing.sort((a,b)=>a.page-b.page);
+ }
+ placementArmed=false;
+ selectedPlacement=locations[0]?.[0]?{who:0,page:locations[0][0].page}:null;
+ renderMarkers();
+ const expected=pageCount*signerNames.length;
+ tell("createStatus","Hazır! "+pageCount+" sayfa × "+signerNames.length+" imzacı = "+expected+" kutu. "+created+" yeni alan eklendi. PDF'yi aşağı kaydırıp imza yerlerini kontrol et.");
+ $("positionPanel").scrollIntoView({behavior:"smooth",block:"start"});
 };
 async function rotateSheet(n,delta){
  const item=pageViews.get(n);if(!item)return;
