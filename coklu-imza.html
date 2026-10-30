@@ -626,10 +626,12 @@ async function listDocs({silent=false}={}){
   notifyNewSignatures(data.documents||[]);
   $("documentsList").innerHTML=data.documents.length?data.documents.map(d=>{
    const signed=(d.signers||[]).filter(s=>s.status==="signed").length;
-   return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<(d.signers||[]).length?"wait":"")+'">'+signed+'/'+(d.signers||[]).length+' imza · '+(d.status==="complete"?"Tamamlandı":signed===(d.signers||[]).length?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
+   return '<div class="card"><div class="row" style="justify-content:space-between"><strong>'+xss(d.title)+'</strong><span class="chip '+(signed<(d.signers||[]).length?"wait":"")+'">'+signed+'/'+(d.signers||[]).length+' imza · '+(d.status==="cancelled"?"Durduruldu":d.status==="complete"?"Tamamlandı":signed===(d.signers||[]).length?"PDF hazırlanıyor":"Bekleniyor")+'</span></div><p class="miniNote">'+new Date(d.created_at).toLocaleString("tr-TR")+'</p>'+
     (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b> · '+xss(s.page_count||1)+' sayfa</div>').join("")+
     '<div class="row" style="margin-top:12px"><button class="secondary" data-admin-open="'+xss(d.id)+'" data-kind="original">Orijinal PDF</button>'+
-    (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':signed===(d.signers||[]).length?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
+    (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':d.status==="pending"&&signed===(d.signers||[]).length?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
+    (d.status==="pending"?'<button class="secondary" data-cancel-doc="'+xss(d.id)+'">Süreci Durdur</button>':'')+
+    '<button class="secondary" data-archive-doc="'+xss(d.id)+'">Listeden Sil</button>'+
     '</div></div>';
   }).join(""):'<p class="muted">Henüz oluşturulmuş belge yok.</p>';
   if(!silent)tell("listStatus","");
@@ -641,10 +643,16 @@ async function listDocs({silent=false}={}){
 }
 $("refreshBtn").onclick=()=>void listDocs();
 $("documentsList").onclick=async e=>{
- const btn=e.target.closest("[data-admin-open],[data-finalize]");if(!btn)return;
+ const btn=e.target.closest("[data-admin-open],[data-finalize],[data-cancel-doc],[data-archive-doc]");if(!btn)return;
  btn.disabled=true;
  try{
-  if(btn.dataset.finalize){await call("finalize",{id:btn.dataset.finalize},true);await listDocs()}
+  if(btn.dataset.cancelDoc||btn.dataset.archiveDoc){
+   const stopping=!!btn.dataset.cancelDoc;
+   if(!confirm(stopping?"Bu belgenin imza süreci durdurulsun mu? Atılan imzalar korunacak.":"Belge listeden kaldırılsın mı? İmzalar ve dosyalar saklanacak, imza bağlantısı kapanacak."))return;
+   await call(stopping?"cancel":"archive",{id:btn.dataset.cancelDoc||btn.dataset.archiveDoc},true);
+   await listDocs();
+  }
+  else if(btn.dataset.finalize){await call("finalize",{id:btn.dataset.finalize},true);await listDocs()}
   else {
    const r=await call("adminPdf",{id:btn.dataset.adminOpen,type:btn.dataset.kind},true);
    const a=document.createElement("a");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";document.body.appendChild(a);a.click();a.remove();
