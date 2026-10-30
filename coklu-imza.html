@@ -648,8 +648,17 @@ $("documentsList").onclick=async e=>{
  btn.disabled=true;
  try{
   if(btn.dataset.partialPdf){
+   tell("listStatus","Alınan imzalar PDF'ye işleniyor, lütfen bekleyin...");
    const r=await call("partialPdf",{id:btn.dataset.partialPdf},true);
-   const a=document.createElement("a");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";document.body.appendChild(a);a.click();a.remove();
+   const response=await fetch(r.url);
+   if(!response.ok)throw Error("İmzalı PDF indirilemedi ("+response.status+").");
+   const blob=await response.blob();
+   if(!blob.size)throw Error("Oluşturulan PDF boş.");
+   const url=URL.createObjectURL(new Blob([blob],{type:"application/pdf"}));
+   const a=document.createElement("a");a.href=url;a.download=(r.title||"belge").replace(/[\\/:*?"<>|]/g,"_")+"-kismi-imzali.pdf";
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+   tell("listStatus","✓ Kısmi imzalı PDF indirildi.");
   }
   else if(btn.dataset.cancelDoc||btn.dataset.archiveDoc){
    const stopping=!!btn.dataset.cancelDoc;
