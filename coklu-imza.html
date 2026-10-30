@@ -630,6 +630,7 @@ async function listDocs({silent=false}={}){
     (d.signers||[]).map(s=>'<div class="personLine">'+xss(s.slot)+'. '+xss(s.name)+' — <b>'+(s.status==="signed"?"✓ İmzaladı":"⏳ Bekleniyor")+'</b> · '+xss(s.page_count||1)+' sayfa</div>').join("")+
     '<div class="row" style="margin-top:12px"><button class="secondary" data-admin-open="'+xss(d.id)+'" data-kind="original">Orijinal PDF</button>'+
     (d.status==="complete"?'<button data-admin-open="'+xss(d.id)+'" data-kind="final">✓ İmzalı PDF’yi Aç</button>':d.status==="pending"&&signed===(d.signers||[]).length?'<button data-finalize="'+xss(d.id)+'">PDF Birleştirmeyi Yeniden Dene</button>':'')+
+    ((d.status==="cancelled"||d.status==="pending")&&signed>0?'<button data-partial-pdf="'+xss(d.id)+'">✓ Alınan İmzalarla PDF İndir</button>':'')+
     (d.status==="pending"?'<button class="secondary" data-cancel-doc="'+xss(d.id)+'">Süreci Durdur</button>':'')+
     '<button class="secondary" data-archive-doc="'+xss(d.id)+'">Listeden Sil</button>'+
     '</div></div>';
@@ -643,10 +644,14 @@ async function listDocs({silent=false}={}){
 }
 $("refreshBtn").onclick=()=>void listDocs();
 $("documentsList").onclick=async e=>{
- const btn=e.target.closest("[data-admin-open],[data-finalize],[data-cancel-doc],[data-archive-doc]");if(!btn)return;
+ const btn=e.target.closest("[data-admin-open],[data-finalize],[data-cancel-doc],[data-archive-doc],[data-partial-pdf]");if(!btn)return;
  btn.disabled=true;
  try{
-  if(btn.dataset.cancelDoc||btn.dataset.archiveDoc){
+  if(btn.dataset.partialPdf){
+   const r=await call("partialPdf",{id:btn.dataset.partialPdf},true);
+   const a=document.createElement("a");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";document.body.appendChild(a);a.click();a.remove();
+  }
+  else if(btn.dataset.cancelDoc||btn.dataset.archiveDoc){
    const stopping=!!btn.dataset.cancelDoc;
    if(!confirm(stopping?"Bu belgenin imza süreci durdurulsun mu? Atılan imzalar korunacak.":"Belge listeden kaldırılsın mı? İmzalar ve dosyalar saklanacak, imza bağlantısı kapanacak."))return;
    await call(stopping?"cancel":"archive",{id:btn.dataset.cancelDoc||btn.dataset.archiveDoc},true);
