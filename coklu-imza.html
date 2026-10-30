@@ -835,8 +835,28 @@ if(window.parent!==window&&!new URLSearchParams(location.hash.slice(1)).has("sig
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
 if(sign)void signerView(sign);
 else{
- try{session=JSON.parse(sessionStorage.getItem(STORE)||"null")}catch{}
- if(session?.access_token)adminView();
+ // CRM ve PDF ayni origin ve sekmede: mevcut oturumu dogrudan, sunucuda dogrulayarak kullan.
+ (async()=>{
+  try{
+   let crm=null;
+   try{crm=JSON.parse(sessionStorage.getItem("emlakcrm_auth_session_v1")||"null")}catch{}
+   if(crm?.access_token){
+    const check=await fetch(API+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+crm.access_token}});
+    if(check.ok){
+     session={access_token:crm.access_token,refresh_token:crm.refresh_token||"",expires_at:crm.expires_at||Date.now()+300000};
+     sessionStorage.setItem(STORE,JSON.stringify(session));
+     adminView();return;
+    }
+   }
+   try{session=JSON.parse(sessionStorage.getItem(STORE)||"null")}catch{}
+   if(session?.access_token){
+    const check=await fetch(API+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+session.access_token}});
+    if(check.ok){adminView();return}
+   }
+   session=null;
+   tell("loginStatus","CRM hesabında oturum açık değilse önce CRM > Ayarlar bölümünden giriş yapın.");
+  }catch(err){tell("loginStatus","Oturum kontrol edilemedi. Normal giriş kullanılabilir.",true)}
+ })();
 }
 </script>
 </body>
