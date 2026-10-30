@@ -815,6 +815,23 @@ $("confirmSignature").onclick=async()=>{
   btn.disabled=false;
  }
 };
+// CRM iframe oturum devri: yalnızca güvenilen üst pencere ve doğrulanmış Supabase oturumu.
+const crmParentOrigin="https://enginbaysal-oss.github.io";
+window.addEventListener("message",async event=>{
+ if(event.origin!==crmParentOrigin||event.source!==window.parent||window.parent===window)return;
+ if(event.data?.type!=="emlakcrm-pdf-session"||new URLSearchParams(location.hash.slice(1)).has("sign"))return;
+ const candidate=event.data.session;
+ if(!candidate?.access_token)return;
+ try{
+  const check=await fetch(API+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+candidate.access_token}});
+  if(!check.ok)throw Error("Oturum doğrulanamadı");
+  session={access_token:candidate.access_token,refresh_token:candidate.refresh_token||"",expires_at:candidate.expires_at||Date.now()+300000};
+  sessionStorage.setItem(STORE,JSON.stringify(session));
+  adminView();
+ }catch(err){tell("loginStatus","CRM oturumu aktarılamadı. Normal giriş kullanılabilir.",true)}
+});
+if(window.parent!==window&&!new URLSearchParams(location.hash.slice(1)).has("sign"))
+ window.parent.postMessage({type:"emlakcrm-pdf-ready"},crmParentOrigin);
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
 if(sign)void signerView(sign);
 else{
