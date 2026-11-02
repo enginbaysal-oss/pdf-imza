@@ -837,6 +837,22 @@ $("confirmSignature").onclick=async()=>{
   btn.disabled=false;
  }
 };
+// Aynı GitHub Pages kökenindeki CRM oturumunu, ikinci parola istemeden doğrula.
+async function restoreCrmSession(){
+ if(window.parent===window||new URLSearchParams(location.hash.slice(1)).has("sign"))return;
+ try{
+  const raw=sessionStorage.getItem("emlakcrm_auth_session_v1");
+  if(!raw)return;
+  const candidate=JSON.parse(raw);
+  if(!candidate?.access_token)return;
+  const check=await fetch(API+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+candidate.access_token}});
+  if(!check.ok)return;
+  session={access_token:candidate.access_token,refresh_token:candidate.refresh_token||"",expires_at:candidate.expires_at||Date.now()+300000};
+  sessionStorage.setItem(STORE,JSON.stringify(session));
+  adminView();
+ }catch(err){console.info("CRM oturumu doğrulanamadı:",err.message)}
+}
+void restoreCrmSession();
 // CRM iframe oturum devri: yalnızca güvenilen üst pencere ve doğrulanmış Supabase oturumu.
 const crmParentOrigin="https://enginbaysal-oss.github.io";
 window.addEventListener("message",async event=>{
