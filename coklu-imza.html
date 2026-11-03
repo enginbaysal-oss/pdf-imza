@@ -22,7 +22,7 @@
 <body>
 <header><nav><h1>✍️ PDF İmzala · Çoklu İmza</h1></nav></header>
 <main>
-<section class="panel" id="adminLogin">
+<section class="panel" id="adminLogin" hidden>
 <h2>Yönetici Girişi</h2>
 <p class="muted">EmlakCRM'de kullandığın Supabase hesabının e-posta ve şifresiyle giriş yap. Yeni kayıt açman gerekmiyor.</p>
 <div class="grid two"><div><label for="loginEmail">E-posta</label><input id="loginEmail" type="email" autocomplete="username" placeholder="E-posta adresin"></div><div><label for="loginPassword">Şifre</label><input id="loginPassword" type="password" autocomplete="current-password"></div></div>
@@ -178,7 +178,31 @@ async function login(email,password){
  session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000};
  sessionStorage.setItem(STORE,JSON.stringify(session));
 }
-function adminView(){
+const PDF_CRM_ACCOUNT="https://enginbaysal-oss.github.io/EmlakCRM-Web/#account";
+function pdfAccessDenied(){
+ try{if(window.parent!==window){window.top.location.replace(PDF_CRM_ACCOUNT);return}}catch{}
+ location.replace(PDF_CRM_ACCOUNT);
+}
+async function pdfHasEntitlement(){
+ if(!session?.access_token)return false;
+ await refreshSession();
+ const headers={apikey:KEY,Authorization:"Bearer "+session.access_token};
+ const verified=await fetch(API+"/auth/v1/user",{headers});
+ if(!verified.ok)return false;
+ const user=await verified.json();
+ if(!user?.id)return false;
+ const adminResponse=await fetch(API+"/rest/v1/emlakcrm_super_admins?select=user_id&user_id=eq."+encodeURIComponent(user.id)+"&limit=1",{headers});
+ if(!adminResponse.ok)throw Error("Yönetici yetkisi sorgulanamadı");
+ if((await adminResponse.json()).some(a=>a.user_id===user.id))return true;
+ const subscriptionResponse=await fetch(API+"/rest/v1/emlakcrm_subscriptions?select=status,starts_at,expires_at&user_id=eq."+encodeURIComponent(user.id)+"&order=created_at.desc&limit=20",{headers});
+ if(!subscriptionResponse.ok)throw Error("Abonelik sorgulanamadı");
+ const now=Date.now();
+ return (await subscriptionResponse.json()).some(s=>s.status==="active"&&Date.parse(s.starts_at)<=now&&Date.parse(s.expires_at)>now);
+}
+async function adminView(){
+ try{
+  if(!await pdfHasEntitlement()){pdfAccessDenied();return}
+ }catch(err){console.warn("PDF abonelik kontrolü:",err);pdfAccessDenied();return}
  $("adminLogin").hidden=true;$("adminApp").hidden=false;$("signerApp").hidden=true;
  signatureSnapshot=null;startSignatureMonitoring();void listDocs();
 }
@@ -873,6 +897,12 @@ if(window.parent!==window&&!new URLSearchParams(location.hash.slice(1)).has("sig
 const hash=new URLSearchParams(location.hash.slice(1)),sign=hash.get("sign");
 if(sign)void signerView(sign);
 else{
+ // Doğrudan girişte CRM oturumu olmadan yönetici formunu açma.
+ let knownSession=false;
+ try{knownSession=!!(sessionStorage.getItem("emlakcrm_auth_session_v1")||sessionStorage.getItem(STORE))}catch{}
+ if(window.parent===window&&!knownSession)pdfAccessDenied();
+ // CRM iframe oturum iletimi gecikirse yalnızca hesap sayfasına yönlendir.
+ window.setTimeout(()=>{if($("adminApp").hidden)pdfAccessDenied()},9000);
  // CRM ve PDF ayni origin ve sekmede: mevcut oturumu dogrudan, sunucuda dogrulayarak kullan.
  (async()=>{
   try{
