@@ -115,7 +115,15 @@
 </div>
 </main>
 <script type="module">
-const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1";
+const $=id=>document.getElementById(id), API="https://tffvwxskvjuxoekwgdef.supabase.co", F=API+"/functions/v1/pdf-multi-sign", KEY="sb_publishable_ADLnhwviFBqWtBkq94Adag_ULlAuzUe", STORE="pdf_multi_auth_v1__owner_"+(function(){
+ try{
+  const raw=sessionStorage.getItem("emlakcrm_auth_session_v1");
+  const token=JSON.parse(raw||"null")?.access_token||"";
+  const p=token.split(".")[1]||"";
+  const x=JSON.parse(atob(p.replace(/-/g,"+").replace(/_/g,"/").padEnd(Math.ceil(p.length/4)*4,"=")));
+  return /^[a-f0-9-]{36}$/i.test(x.sub||"")?x.sub:"unverified";
+ }catch(_){return "unverified"}
+})();
 const xss=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let signerNames=["Mal sahibi","Kiracı","Kefil"];let session=null,selectedFile=null,pdfDoc=null,pageCount=0,locations=[],signToken=null,ink=false,pageObserver=null,signPages=[],signIndex=0,signedPagePng=[],signPlacements=[],signPdfDocument=null,signPdfRenderTask=null;const pageViews=new Map();let placementArmed=false,documentCreated=false,creatingDoc=false,selectedPlacement=null,dragPlacement=null,ignorePaperClickUntil=0;
 function tell(id,message,error=false){const el=$(id);el.textContent=message||"";el.classList.toggle("error",error)}
@@ -191,6 +199,16 @@ async function pdfHasEntitlement(){
  if(!verified.ok)return false;
  const user=await verified.json();
  if(!user?.id)return false;
+ // Never reuse a prior PDF account under a different EmlakCRM login.
+ let crm;
+ try{crm=JSON.parse(sessionStorage.getItem("emlakcrm_auth_session_v1")||"null")}catch{return false}
+ if(!crm?.access_token)return false;
+ const crmCheck=await fetch(API+"/auth/v1/user",{headers:{apikey:KEY,Authorization:"Bearer "+crm.access_token}});
+ if(!crmCheck.ok)return false;
+ const crmUser=await crmCheck.json();
+ if(crmUser.id!==user.id)return false;
+ const active=localStorage.getItem("emlakcrm_active_account_v1");
+ if(active&&active!==user.id)return false;
  const adminResponse=await fetch(API+"/rest/v1/emlakcrm_super_admins?select=user_id&user_id=eq."+encodeURIComponent(user.id)+"&limit=1",{headers});
  if(!adminResponse.ok)throw Error("Yönetici yetkisi sorgulanamadı");
  if((await adminResponse.json()).some(a=>a.user_id===user.id))return true;
