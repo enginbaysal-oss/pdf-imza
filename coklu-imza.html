@@ -34,7 +34,7 @@
 <div class="row" style="justify-content:space-between"><h2>Yeni Çoklu İmza Toplama</h2><button id="logoutBtn" class="secondary">Çıkış Yap</button></div>
 <p class="notice warn">Deneme sürümü: İmzalar elle çizilerek PDF'ye işlenir. Nitelikli elektronik imza yerine geçmez. Kimlik doğrulaması bağlantıya erişimle sınırlıdır; hassas veya gerçek sözleşmelerle test etmeyin.</p>
 <label for="docTitle">Belge adı</label><input id="docTitle" maxlength="180" placeholder="Örnek: Deneme kira sözleşmesi">
-<label for="pdfFile">PDF dosyası (en fazla 6 MB, 100 sayfa)</label><input id="pdfFile" type="file" accept="application/pdf,.pdf">
+<label for="pdfFile">PDF dosyası (en fazla 20 MB, 100 sayfa)</label><input id="pdfFile" type="file" accept="application/pdf,.pdf">
 <div class="grid" id="nameGrid"></div>
 <div class="row" style="margin:10px 0 15px"><button id="addSigner" class="secondary" type="button">+ İmzacı Ekle</button><span class="muted" id="signerCountHint"></span></div>
 <div id="positionPanel" hidden>
@@ -492,7 +492,8 @@ async function rotateSheet(n,delta){
 $("pdfFile").onchange=async()=>{
  const file=$("pdfFile").files[0];selectedFile=null;pdfDoc=null;documentCreated=false;creatingDoc=false;placementArmed=false;resetPagePreview();renderSignerFields();$("positionPanel").hidden=true;$("createBtn").disabled=true;
  if(!file)return;
- if(file.size>6*1024*1024){tell("createStatus","PDF 6 MB sınırını aşamaz.",true);return}
+ if(file.size>20*1024*1024){tell("createStatus","PDF 20 MB sınırını aşamaz.",true);return}
+ if(file.size<80){tell("createStatus","Geçerli bir PDF dosyası seçin.",true);return}
  tell("createStatus","PDF hazırlanıyor...");
  try{
   const opened=await readerPdf(file);
@@ -578,10 +579,48 @@ $("rotateAll180").onclick=async()=>{
  tell("createStatus","PDF 180° döndürüldü. İmza kutularının konumlarını kontrol et.");
 };
 
-async function b64(file){
- const bytes=await fileBytes(file);let result="";
- for(let i=0;i<bytes.length;i+=0x8000)result+=String.fromCharCode(...bytes.slice(i,i+0x8000));
- return btoa(result);
+// Supabase signed, per-user, per-file upload; PDF never passes in Edge Function JSON.
+const PDF_MAX_BYTES=20*1024*1024;
+async function sendLargePdfSigned(file,prepared){
+ if(!prepared||!prepared.upload_token||
+    !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/orijinal\.pdf$/i.test(prepared.path||""))
+   throw Error("Sunucu güvenli yükleme yolunu doğrulamadı.");
+ if(file.size>PDF_MAX_BYTES||file.size<80)throw Error("PDF en fazla 20 MB olabilir.");
+ const bucket="pdf-multi-private",target=prepared.path;
+ const progress=(loaded,total)=>{
+  const percent=Math.min(100,Math.round(loaded/Math.max(1,total)*100));
+  tell("createStatus","PDF güvenli depoya yükleniyor: %"+percent+". Sayfayı kapatmayın.");
+ };
+ // 6 MB parçalı TUS; interrupted chunks are retried without re-sending entire PDF.
+ if(window.tus?.Upload){
+  await new Promise((resolve,reject)=>{
+   const upload=new window.tus.Upload(file,{
+    endpoint:"https://tffvwxskvjuxoekwgdef.storage.supabase.co/storage/v1/upload/resumable",
+    chunkSize:6*1024*1024,
+    uploadDataDuringCreation:true,
+    retryDelays:[0,2000,4000,8000,12000],
+    removeFingerprintOnSuccess:true,
+    headers:{"x-signature":prepared.upload_token},
+    metadata:{bucketName:bucket,objectName:target,contentType:"application/pdf",cacheControl:"3600"},
+    onProgress:progress,
+    onError:error=>reject(new Error("Parçalı PDF yüklemesi başarısız: "+error.message)),
+    onSuccess:resolve
+   });
+   upload.start();
+  });
+  return;
+ }
+ // CDN unavailable: standards-based signed direct upload, without base64 Edge payload.
+ tell("createStatus","Parçalı yükleme kitaplığı açılamadı; güvenli doğrudan yükleme deneniyor…");
+ const form=new FormData();
+ form.append("cacheControl","3600");
+ form.append("",file,file.name||"belge.pdf");
+ const path=target.split("/").map(encodeURIComponent).join("/");
+ const endpoint=API+"/storage/v1/object/upload/sign/"+bucket+"/"+path+
+  "?token="+encodeURIComponent(prepared.upload_token);
+ const response=await fetch(endpoint,{method:"PUT",headers:{apikey:KEY},body:form,cache:"no-store"});
+ if(!response.ok)throw Error("PDF depoya yüklenemedi ("+response.status+"). Bağlantıyı kontrol edip tekrar deneyin.");
+ progress(file.size,file.size);
 }
 $("createBtn").onclick=async()=>{
  if(!selectedFile||!pdfDoc){tell("createStatus","Önce PDF seç.",true);return}
@@ -594,7 +633,12 @@ $("createBtn").onclick=async()=>{
  const btn=$("createBtn");creatingDoc=true;btn.disabled=true;tell("createStatus","PDF yükleniyor ve özel imza bağlantıları hazırlanıyor...");
  try{
   const rotations=Array.from({length:pageCount},(_,i)=>pageViews.get(i+1).rotation);
-  const data=await call("create",{title,pdf:await b64(selectedFile),signers,rotations},true);
+  if(selectedFile.size>PDF_MAX_BYTES)throw Error("PDF 20 MB sınırını aşıyor.");
+  tell("createStatus","20 MB'a kadar güvenli yükleme bağlantısı hazırlanıyor…");
+  const prepared=await call("prepare_upload",{file_size:selectedFile.size},true);
+  await sendLargePdfSigned(selectedFile,prepared);
+  tell("createStatus","PDF aktarıldı. Sunucuda doğrulanıyor ve imza bağlantıları oluşturuluyor…");
+  const data=await call("create",{title,upload_id:prepared.upload_id,signers,rotations},true);
   const base=location.href.split("#")[0];
   $("invites").innerHTML=data.links.map(item=>{
    const link=base+"#sign="+encodeURIComponent(item.token);
